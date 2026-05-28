@@ -9,9 +9,8 @@
   },
   "scripts": {
     "start": "react-scripts start",
-   "build": "npx react-scripts build",
-   
-         "test""react-scripts test"
+    "build": "npx react-scripts build",
+    "test": "react-scripts test"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
