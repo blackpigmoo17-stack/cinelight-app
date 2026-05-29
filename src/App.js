@@ -1,4 +1,6 @@
 import { useState, useRef, useCallback } from "react";
+import LightingDiagram3D from "./LightingDiagram3D";
+import EquipmentSelector from "./EquipmentSelector";
 
 const MOODS = [
   { id: "golden_hour", label: "Golden Hour", emoji: "🌅", desc: "อบอุ่น นุ่มนวล โรแมนติก", color: "#f59e0b" },
@@ -110,7 +112,7 @@ const LIGHTING_PRESETS = {
   },
 };
 
-const analyzeImageMood = async (imageBase64, mood, shotType, apiKey) => {
+const analyzeImageMood = async (imageBase64, mood, shotType, apiKey, equipment = []) => {
   const selectedMood = MOODS.find(m => m.id === mood);
   const response = await fetch("/.netlify/functions/analyze", {
     method: "POST",
@@ -119,7 +121,8 @@ const analyzeImageMood = async (imageBase64, mood, shotType, apiKey) => {
       imageBase64,
       mood: `${selectedMood?.label} — ${selectedMood?.desc}`,
       shotType,
-      apiKey
+      apiKey,
+      equipment
     })
   });
   const data = await response.json();
@@ -139,6 +142,7 @@ export default function App() {
   const [apiKey, setApiKey] = useState(localStorage.getItem("cinelight_apikey") || "");
   const [showApiInput, setShowApiInput] = useState(false);
   const [cameraError, setCameraError] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState({});
   const fileRef = useRef();
   const videoRef = useRef();
   const streamRef = useRef();
@@ -193,7 +197,7 @@ export default function App() {
     setLoading(true);
     setStep(4);
     try {
-      const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, apiKey);
+      const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, apiKey, selectedEquipment);
       setAnalysis(result);
     } catch (err) {
       setAnalysis({ scene_analysis: `เกิดข้อผิดพลาด: ${err.message}`, lighting_recommendation: "", key_challenge: "", pro_tip: "" });
@@ -242,12 +246,50 @@ export default function App() {
 
       {/* Camera Overlay */}
       {cameraMode && (
-        <div style={{ position: "fixed", inset: 0, background: "#000", zIndex: 100, display: "flex", flexDirection: "column" }}>
-          <video ref={videoRef} autoPlay playsInline muted style={{ flex: 1, objectFit: "cover", width: "100%" }} />
-          <div style={{ padding: "24px", background: "#00000088", display: "flex", justifyContent: "center", gap: 20, alignItems: "center" }}>
-            <button className="cam-btn" style={{ background: "#1e293b", color: "#94a3b8" }} onClick={stopCamera}>✕ ยกเลิก</button>
-            <button className="cam-btn" style={{ background: "white", color: "#000", width: 72, height: 72, borderRadius: "50%", fontSize: 28 }} onClick={capturePhoto}>📸</button>
-            <div style={{ width: 80 }} />
+        <div style={{
+          position: "fixed", top: 0, left: 0, width: "100vw", height: "100vh",
+          background: "#000", zIndex: 9999,
+          touchAction: "none", userSelect: "none",
+          overflow: "hidden"
+        }}>
+          {/* Video - true fullscreen, no scroll */}
+          <video ref={videoRef} autoPlay playsInline muted
+            style={{
+              position: "fixed", top: 0, left: 0,
+              width: "100vw", height: "100vh",
+              objectFit: "cover", zIndex: 1
+            }} />
+
+          {/* Cancel - fixed top left */}
+          <button onClick={stopCamera} style={{
+            position: "fixed", top: 24, left: 20, zIndex: 9999,
+            background: "rgba(0,0,0,0.65)", border: "1px solid rgba(255,255,255,0.25)",
+            borderRadius: 30, padding: "10px 20px", color: "white",
+            fontSize: 15, fontWeight: 700, cursor: "pointer"
+          }}>✕</button>
+
+          {/* Hint - fixed top right */}
+          <div style={{
+            position: "fixed", top: 24, right: 20, zIndex: 9999,
+            background: "rgba(0,0,0,0.55)", borderRadius: 8,
+            padding: "8px 12px", fontSize: 12, color: "rgba(255,255,255,0.8)"
+          }}>จัดเฟรมแล้วกด ⭕</div>
+
+          {/* Shutter - fixed bottom center, NEVER moves */}
+          <div style={{
+            position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999,
+            display: "flex", justifyContent: "center", alignItems: "center",
+            paddingBottom: 40, paddingTop: 20,
+            background: "linear-gradient(transparent, rgba(0,0,0,0.7))"
+          }}>
+            <button onClick={capturePhoto} style={{
+              width: 84, height: 84, borderRadius: "50%",
+              background: "transparent", border: "5px solid white",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              cursor: "pointer", padding: 0, WebkitTapHighlightColor: "transparent"
+            }}>
+              <div style={{ width: 68, height: 68, borderRadius: "50%", background: "white" }} />
+            </button>
           </div>
         </div>
       )}
@@ -320,6 +362,11 @@ export default function App() {
           </div>
         </div>
 
+        {/* Equipment Selector */}
+        <div style={{ marginBottom: 28, opacity: step >= 2 ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= 2 ? "auto" : "none" }}>
+          <EquipmentSelector selected={selectedEquipment} onChange={setSelectedEquipment} />
+        </div>
+
         {/* Step 3 */}
         <div style={{ marginBottom: 28, opacity: step >= 2 ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= 2 ? "auto" : "none" }}>
           <div className="section-title">STEP 3 — เลือกอารมณ์ภาพ</div>
@@ -363,6 +410,7 @@ export default function App() {
                 </div>
               ))}
             </div>
+            <LightingDiagram3D lights={preset.lights} moodColor={mood.color} />
             <div style={{ background: "#0a0f1a", border: "1px solid #1e293b", borderRadius: 10, padding: "14px 18px", display: "flex", gap: 20, flexWrap: "wrap" }}>
               {[["F-STOP", preset.fStop, "#60a5fa"], ["ISO", preset.iso, "#a78bfa"], ["SHUTTER", preset.shutter, "#34d399"]].map(([label, val, col]) => (
                 <div key={label}>
@@ -387,17 +435,61 @@ export default function App() {
             </button>
             {analysis && (
               <div>
-                {[
-                  ["📍 วิเคราะห์ฉาก", analysis.scene_analysis, "#cbd5e1", "#1e293b"],
-                  ["💡 คำแนะนำการวางไฟ", analysis.lighting_recommendation, "#93c5fd", "#1e3a5f"],
-                  ["⚠️ ความท้าทายที่ต้องระวัง", analysis.key_challenge, "#fca5a5", "#3d1f1f"],
-                  ["🎥 Pro Tip จาก DOP", analysis.pro_tip, "#86efac", "#1a2d1a"],
-                ].filter(([, val]) => val).map(([label, val, textCol, borderCol]) => (
-                  <div key={label} className="analysis-card" style={{ borderColor: borderCol }}>
-                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>{label}</div>
-                    <div style={{ fontSize: 13, color: textCol, lineHeight: 1.7 }}>{val}</div>
+                {analysis.scene_analysis && (
+                  <div className="analysis-card">
+                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>📍 วิเคราะห์ฉาก</div>
+                    <div style={{ fontSize: 13, color: "#cbd5e1", lineHeight: 1.7 }}>{analysis.scene_analysis}</div>
                   </div>
-                ))}
+                )}
+                {analysis.lighting_recommendation && (
+                  <div className="analysis-card" style={{ borderColor: "#1e3a5f" }}>
+                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>💡 คำแนะนำการวางไฟ</div>
+                    <div style={{ fontSize: 13, color: "#93c5fd", lineHeight: 1.7 }}>{analysis.lighting_recommendation}</div>
+                  </div>
+                )}
+                {analysis.light_placement_detail && analysis.light_placement_detail.length > 0 && (
+                  <div className="analysis-card" style={{ borderColor: "#1a2d3a" }}>
+                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 12 }}>🎯 รายละเอียดการวางไฟแต่ละดวง</div>
+                    {analysis.light_placement_detail.map((l, i) => (
+                      <div key={i} style={{ background: "#060a12", borderRadius: 8, padding: "12px", marginBottom: 10, border: "1px solid #1e293b" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "#60a5fa", marginBottom: 8 }}>💡 {l.light_name}</div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+                          {[
+                            ["🔧 อุปกรณ์", l.equipment_to_use],
+                            ["📏 ระยะห่าง", l.distance],
+                            ["🦺 ขาตั้ง", l.stand_type],
+                            ["📐 มุมก้ม", l.angle],
+                            ["↕️ ความสูง", l.stand_height],
+                            ["✨ Modifier", l.modifier],
+                          ].filter(([,v]) => v).map(([label, val]) => (
+                            <div key={label} style={{ background: "#0a0f1a", borderRadius: 6, padding: "6px 8px" }}>
+                              <div style={{ fontSize: 9, color: "#475569", marginBottom: 2 }}>{label}</div>
+                              <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>{val}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {analysis.key_challenge && (
+                  <div className="analysis-card" style={{ borderColor: "#3d1f1f" }}>
+                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>⚠️ ความท้าทายที่ต้องระวัง</div>
+                    <div style={{ fontSize: 13, color: "#fca5a5", lineHeight: 1.7 }}>{analysis.key_challenge}</div>
+                  </div>
+                )}
+                {analysis.pro_tip && (
+                  <div className="analysis-card" style={{ borderColor: "#1a2d1a" }}>
+                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>🎥 Pro Tip จาก DOP</div>
+                    <div style={{ fontSize: 13, color: "#86efac", lineHeight: 1.7 }}>{analysis.pro_tip}</div>
+                  </div>
+                )}
+                {analysis.budget_tip && (
+                  <div className="analysis-card" style={{ borderColor: "#2d2a1a" }}>
+                    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>💰 ประหยัดงบ</div>
+                    <div style={{ fontSize: 13, color: "#fde68a", lineHeight: 1.7 }}>{analysis.budget_tip}</div>
+                  </div>
+                )}
               </div>
             )}
           </div>
