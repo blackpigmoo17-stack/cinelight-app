@@ -112,44 +112,19 @@ const LIGHTING_PRESETS = {
 
 const analyzeImageMood = async (imageBase64, mood, shotType, apiKey) => {
   const selectedMood = MOODS.find(m => m.id === mood);
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch("/.netlify/functions/analyze", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "claude-opus-4-5",
-      max_tokens: 1000,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 } },
-          {
-            type: "text",
-            text: `วิเคราะห์ภาพนี้ในฐานะผู้เชี่ยวชาญ Cinematographer/DOP ระดับมืออาชีพ
-
-อารมณ์ภาพที่ต้องการ: ${selectedMood?.label} — ${selectedMood?.desc}
-ประเภทช็อต: ${shotType}
-
-ตอบเป็น JSON เท่านั้น ไม่มี markdown backtick:
-{
-  "scene_analysis": "วิเคราะห์ฉากในภาพ ขนาดพื้นที่ จำนวนซับเจกต์ และสภาพแสงปัจจุบัน (2-3 ประโยค)",
-  "lighting_recommendation": "คำแนะนำการวางไฟสำหรับอารมณ์นี้โดยเฉพาะ (2-3 ประโยค)",
-  "key_challenge": "ความท้าทายหลักของฉากนี้ที่ต้องระวัง (1 ประโยค)",
-  "pro_tip": "เทคนิคพิเศษจาก DOP มืออาชีพสำหรับฉากนี้ (1 ประโยค)"
-}`
-          }
-        ]
-      }]
+      imageBase64,
+      mood: `${selectedMood?.label} — ${selectedMood?.desc}`,
+      shotType,
+      apiKey
     })
   });
   const data = await response.json();
-  if (data.error) throw new Error(data.error.message);
-  const text = data.content.map(i => i.text || "").join("");
-  try { return JSON.parse(text.trim()); }
-  catch { return { scene_analysis: text, lighting_recommendation: "", key_challenge: "", pro_tip: "" }; }
+  if (data.error) throw new Error(data.error);
+  return data;
 };
 
 export default function App() {
