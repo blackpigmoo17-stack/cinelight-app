@@ -114,7 +114,7 @@ const LIGHTING_PRESETS = {
 
 const analyzeImageMood = async (imageBase64, mood, shotType, apiKey, equipment = []) => {
   const selectedMood = MOODS.find(m => m.id === mood);
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
+  const response = await fetch("/api/analyze", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
