@@ -40,7 +40,7 @@ export default function EquipmentSelector({ equipment, onChange }) {
     onChange({ ...equipment, [catId]: value });
   };
 
-  const hasAny = Object.values(equipment).some(v => v && v.trim());
+  const hasAny = Object.values(equipment || {}).some(v => v && v.trim());
 
   return (
     <div style={{ marginBottom: 24 }}>
