@@ -128,11 +128,9 @@ const LIGHTING_PRESETS = {
         equipment
       })
     });
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message || data.error);
-    const text = data.content[0].text;
-    const clean = text.replace(/```json|```/g, "").trim();
-    return JSON.parse(clean);
+  const data = await response.json();
+if (data.error) throw new Error(data.error);
+return data;
   } catch (err) {
     throw err;
   }
