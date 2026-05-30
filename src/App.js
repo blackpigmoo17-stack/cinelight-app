@@ -112,33 +112,30 @@ const LIGHTING_PRESETS = {
   },
 };
 
-const analyzeImageMood = async (imageBase64, mood, shotType, apiKey, equipment = []) => {
+
+ const analyzeImageMood = async (imageBase64, mood, shotType, equipment = []) => {
   const selectedMood = MOODS.find(m => m.id === mood);
-  const response = await fetch("/api/analyze", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-allow-browser": "true"
-    },
-    body: JSON.stringify({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 1500,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 }},
-          { type: "text", text: `วิเคราะห์ภาพนี้สำหรับการจัดแสงแบบ ${selectedMood?.label} ประเภทช็อต: ${shotType} อุปกรณ์ที่มี: ${JSON.stringify(equipment)} ตอบเป็น JSON เท่านั้น: {"scene_analysis":"...","lighting_recommendation":"...","light_placement_detail":[{"light_name":"...","equipment_to_use":"...","distance":"...","angle":"...","stand_height":"...","stand_type":"...","modifier":"..."}],"key_challenge":"...","pro_tip":"...","budget_tip":"..."}` }
-        ]
-      }]
-    })
-  });
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message || data.error);
-  const text = data.content[0].text;
-  const clean = text.replace(/```json|```/g, "").trim();
-  return JSON.parse(clean);
+  try {
+    const response = await fetch("/api/analyze", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        imageBase64,
+        mood,
+        shotType,
+        equipment
+      })
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message || data.error);
+    const text = data.content[0].text;
+    const clean = text.replace(/```json|```/g, "").trim();
+    return JSON.parse(clean);
+  } catch (err) {
+    throw err;
+  }
 };
 
 export default function App() {
