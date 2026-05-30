@@ -199,7 +199,7 @@ export default function App() {
 
   const handleAnalyze = async () => {
     if (!selectedMood || !imageBase64) return;
-    if (!apiKey) { setShowApiInput(true); return; }
+    
     setLoading(true);
     setStep(4);
     try {
