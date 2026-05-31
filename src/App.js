@@ -370,7 +370,7 @@ export default function App() {
 
         {/* Equipment Selector */}
         <div style={{ marginBottom: 28, opacity: step >= 2 ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= 2 ? "auto" : "none" }}>
-          <EquipmentSelector selected={selectedEquipment} onChange={setSelectedEquipment} />
+         <EquipmentSelector equipment={selectedEquipment} onChange={setSelectedEquipment} />
         </div>
 
         {/* Step 3 */}
