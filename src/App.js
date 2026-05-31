@@ -203,7 +203,7 @@ export default function App() {
     setLoading(true);
     setStep(4);
     try {
-      const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, apiKey, selectedEquipment);
+    const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment);
       setAnalysis(result);
     } catch (err) {
       setAnalysis({ scene_analysis: `เกิดข้อผิดพลาด: ${err.message}`, lighting_recommendation: "", key_challenge: "", pro_tip: "" });
