@@ -22,7 +22,9 @@ export default async function handler(req, res) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 }},
-            { type: "text", text: `วิเคราะห์ภาพนี้สำหรับการจัดแสงแบบ ${mood} ประเภทช็อต: ${shotType} อุปกรณ์ที่มี: ${JSON.stringify(equipment)} ตอบเป็น JSON เท่านั้น: {"scene_analysis":"...","lighting_recommendation":"...","light_placement_detail":[{"light_name":"...","equipment_to_use":"...","distance":"...","angle":"...","stand_height":"...","stand_type":"...","modifier":"..."}],"key_challenge":"...","pro_tip":"...","budget_tip":"..."}` }
+            { type: text: `วิเคราะห์ภาพนี้สำหรับการจัดแสงแบบ ${mood} ประเภทช็อต: ${shotType} อุปกรณ์ที่มี: ${JSON.stringify(equipment)} 
+
+ตอบเป็นภาษาไทยทั้งหมด ตอบเป็น JSON เท่านั้น: {"scene_analysis":"...","lighting_recommendation":"...","light_placement_detail":[{"light_name":"...","equipment_to_use":"...","distance":"...","angle":"...","stand_height":"...","stand_type":"...","modifier":"..."}],"key_challenge":"...","pro_tip":"...","budget_tip":"..."}`
           ]
         }]
       })
