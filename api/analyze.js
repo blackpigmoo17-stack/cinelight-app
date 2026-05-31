@@ -1,9 +1,9 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
-  
+
   const { imageBase64, mood, shotType, equipment } = req.body;
   const apiKey = process.env.ANTHROPIC_API_KEY;
-  
+
   if (!apiKey) return res.status(500).json({ error: "API Key not configured" });
   if (!imageBase64) return res.status(400).json({ error: "กรุณาอัปโหลดภาพ" });
 
@@ -22,9 +22,7 @@ export default async function handler(req, res) {
           role: "user",
           content: [
             { type: "image", source: { type: "base64", media_type: "image/jpeg", data: imageBase64 }},
-            { type: text: `วิเคราะห์ภาพนี้สำหรับการจัดแสงแบบ ${mood} ประเภทช็อต: ${shotType} อุปกรณ์ที่มี: ${JSON.stringify(equipment)} 
-
-ตอบเป็นภาษาไทยทั้งหมด ตอบเป็น JSON เท่านั้น: {"scene_analysis":"...","lighting_recommendation":"...","light_placement_detail":[{"light_name":"...","equipment_to_use":"...","distance":"...","angle":"...","stand_height":"...","stand_type":"...","modifier":"..."}],"key_challenge":"...","pro_tip":"...","budget_tip":"..."}`
+            { type: "text", text: `วิเคราะห์ภาพนี้สำหรับการจัดแสงแบบ ${mood} ประเภทช็อต: ${shotType} อุปกรณ์ที่มี: ${JSON.stringify(equipment)} ตอบเป็นภาษาไทยทั้งหมด ตอบเป็น JSON เท่านั้น: {"scene_analysis":"...","lighting_recommendation":"...","light_placement_detail":[{"light_name":"...","equipment_to_use":"...","distance":"...","angle":"...","stand_height":"...","stand_type":"...","modifier":"..."}],"key_challenge":"...","pro_tip":"...","budget_tip":"..."}` }
           ]
         }]
       })
@@ -38,4 +36,4 @@ export default async function handler(req, res) {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
-}
+};
