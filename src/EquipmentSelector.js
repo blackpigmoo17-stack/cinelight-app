@@ -1,65 +1,45 @@
 import { useState } from "react";
 
 const EQUIPMENT_TYPES = [
-  {
-    id: "led_cob",
-    name: "LED COB",
-    emoji: "💡",
-    examples: "เช่น Aputure 600d, Amaran 150c, Godox SL-60W",
-  },
-  {
-    id: "led_panel",
-    name: "LED Panel",
-    emoji: "⬛",
-    examples: "เช่น Aputure MT Pro, Godox P600R, LED Panel 100W",
-  },
-  {
-    id: "tube_light",
-    name: "Tube Light",
-    emoji: "🔦",
-    examples: "เช่น Nanlite Pavotube, Godox TL60, RGBWW Tube",
-  },
-  {
-    id: "hmi",
-    name: "HMI / Fresnel",
-    emoji: "☀️",
-    examples: "เช่น HMI 575W, Fresnel 300W, ARRI Studio",
-  },
-  {
-    id: "softbox",
-    name: "Softbox / Modifier",
-    emoji: "⬜",
-    examples: "เช่น Softbox 60x90, Octabox 120cm, Beauty Dish",
-  },
-  {
-    id: "stand",
-    name: "ขาตั้ง / Boom Arm",
-    emoji: "🦺",
-    examples: "เช่น C-Stand 3ขา, Light Stand 2ม., Boom Arm",
-  },
-  {
-    id: "gobo",
-    name: "โกโบ้ / Flag / Cutter",
-    emoji: "🎭",
-    examples: "เช่น Flag ดำ 60x90, Cutter, Gobo Head",
-  },
-  {
-    id: "other",
-    name: "อื่นๆ",
-    emoji: "🎨",
-    examples: "เช่น Color Gel, Diffusion Silk, Reflector",
-  },
+  { id: "led_cob", name: "LED COB", emoji: "💡", placeholder: "เช่น Aputure 600d" },
+  { id: "led_panel", name: "LED Panel", emoji: "⬛", placeholder: "เช่น Godox P600R" },
+  { id: "tube_light", name: "Tube Light", emoji: "🔦", placeholder: "เช่น Nanlite Pavotube" },
+  { id: "hmi", name: "HMI / Fresnel", emoji: "☀️", placeholder: "เช่น HMI 575W" },
+  { id: "softbox", name: "Softbox / Modifier", emoji: "⬜", placeholder: "เช่น Softbox 60x90" },
+  { id: "stand", name: "ขาตั้ง / Boom Arm", emoji: "🦺", placeholder: "เช่น C-Stand" },
+  { id: "gobo", name: "โกโบ้ / Flag", emoji: "🎭", placeholder: "เช่น Flag ดำ 60x90" },
+  { id: "other", name: "อื่นๆ", emoji: "🎨", placeholder: "เช่น Color Gel, Reflector" },
 ];
+
+const emptyItem = () => ({ model: "", qty: 1 });
 
 export default function EquipmentSelector({ equipment = {}, onChange }) {
   const [open, setOpen] = useState(false);
 
-  const handleChange = (id, value) => {
-    onChange({ ...equipment, [id]: value });
+  // equipment = { led_cob: [{model, qty}, ...], ... }
+  const getItems = (id) => equipment[id] || [];
+
+  const handleItemChange = (catId, index, field, value) => {
+    const items = [...getItems(catId)];
+    items[index] = { ...items[index], [field]: value };
+    onChange({ ...equipment, [catId]: items });
   };
 
-  const filled = EQUIPMENT_TYPES.filter(e => equipment[e.id]?.trim());
-  const hasAny = filled.length > 0;
+  const addItem = (catId) => {
+    const items = [...getItems(catId), emptyItem()];
+    onChange({ ...equipment, [catId]: items });
+  };
+
+  const removeItem = (catId, index) => {
+    const items = getItems(catId).filter((_, i) => i !== index);
+    onChange({ ...equipment, [catId]: items });
+  };
+
+  const hasAny = EQUIPMENT_TYPES.some(e => getItems(e.id).some(i => i.model.trim()));
+
+  const summary = EQUIPMENT_TYPES.flatMap(e =>
+    getItems(e.id).filter(i => i.model.trim()).map(i => `${e.emoji} ${i.model} ${i.qty}ดวง/ชิ้น`)
+  );
 
   return (
     <div style={{ marginBottom: 24 }}>
@@ -67,74 +47,94 @@ export default function EquipmentSelector({ equipment = {}, onChange }) {
         STEP 2.5 — อุปกรณ์ที่คุณมี
       </div>
 
-      {/* Summary box */}
+      {/* Summary */}
       <div style={{ background: "#0a0f1a", border: "1px solid #1e293b", borderRadius: 10, padding: "12px 14px", marginBottom: 10 }}>
         {!hasAny ? (
           <div style={{ fontSize: 12, color: "#334155", fontStyle: "italic" }}>
             ยังไม่ได้ระบุอุปกรณ์ — AI จะแนะนำแบบทั่วไป
           </div>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            {filled.map(e => (
-              <div key={e.id} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                <span style={{ fontSize: 14, flexShrink: 0 }}>{e.emoji}</span>
-                <div>
-                  <div style={{ fontSize: 10, color: "#475569", marginBottom: 1 }}>{e.name}</div>
-                  <div style={{ fontSize: 12, color: "#94a3b8" }}>{equipment[e.id]}</div>
-                </div>
-              </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {summary.map((s, i) => (
+              <div key={i} style={{ fontSize: 12, color: "#94a3b8" }}>{s}</div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Toggle button */}
-      <button
-        onClick={() => setOpen(prev => !prev)}
-        style={{
-          background: "#0d1117", border: "1px solid #1e293b", borderRadius: 8,
-          padding: "10px 16px", color: "#94a3b8", fontSize: 13, cursor: "pointer",
-          width: "100%", fontFamily: "inherit", textAlign: "left",
-          display: "flex", justifyContent: "space-between", alignItems: "center"
-        }}
-      >
+      {/* Toggle */}
+      <button onClick={() => setOpen(p => !p)} style={{
+        background: "#0d1117", border: "1px solid #1e293b", borderRadius: 8,
+        padding: "10px 16px", color: "#94a3b8", fontSize: 13, cursor: "pointer",
+        width: "100%", fontFamily: "inherit", textAlign: "left",
+        display: "flex", justifyContent: "space-between", alignItems: "center"
+      }}>
         <span>✏️ {hasAny ? "แก้ไขอุปกรณ์" : "กรอกอุปกรณ์ที่มี"}</span>
         <span>{open ? "▲" : "▼"}</span>
       </button>
 
-      {/* Input panel */}
       {open && (
         <div style={{ background: "#0a0f1a", border: "1px solid #1e293b", borderRadius: 10, padding: 16, marginTop: 8 }}>
-          <div style={{ fontSize: 11, color: "#475569", marginBottom: 14, lineHeight: 1.6 }}>
-            กรอกรุ่น/จำนวนอุปกรณ์ที่มี AI จะแนะนำการวางไฟตามอุปกรณ์จริงของคุณ
+          <div style={{ fontSize: 11, color: "#475569", marginBottom: 14 }}>
+            กรอกรุ่นและจำนวนอุปกรณ์ที่มี AI จะวางแผนการจัดแสงตามอุปกรณ์จริงของคุณ
           </div>
-          {EQUIPMENT_TYPES.map(eq => (
-            <div key={eq.id} style={{ marginBottom: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ fontSize: 15 }}>{eq.emoji}</span>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1" }}>{eq.name}</span>
+
+          {EQUIPMENT_TYPES.map(cat => (
+            <div key={cat.id} style={{ marginBottom: 18 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <span style={{ fontSize: 15 }}>{cat.emoji}</span>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "#cbd5e1" }}>{cat.name}</span>
               </div>
-              <input
-                type="text"
-                value={equipment[eq.id] || ""}
-                onChange={e => handleChange(eq.id, e.target.value)}
-                placeholder={eq.examples}
-                style={{
-                  width: "100%", background: "#0d1117", border: "1px solid #1e293b",
-                  borderRadius: 8, padding: "10px 12px", color: "#e2e8f0",
-                  fontSize: 12, fontFamily: "inherit", boxSizing: "border-box"
-                }}
-              />
+
+              {getItems(cat.id).map((item, idx) => (
+                <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "center" }}>
+                  <input
+                    type="text"
+                    value={item.model}
+                    onChange={e => handleItemChange(cat.id, idx, "model", e.target.value)}
+                    placeholder={cat.placeholder}
+                    style={{
+                      flex: 1, background: "#0d1117", border: "1px solid #1e293b",
+                      borderRadius: 8, padding: "8px 10px", color: "#e2e8f0",
+                      fontSize: 12, fontFamily: "inherit", boxSizing: "border-box"
+                    }}
+                  />
+                  <input
+                    type="number"
+                    value={item.qty}
+                    min={1} max={20}
+                    onChange={e => handleItemChange(cat.id, idx, "qty", parseInt(e.target.value) || 1)}
+                    style={{
+                      width: 52, background: "#0d1117", border: "1px solid #1e293b",
+                      borderRadius: 8, padding: "8px 6px", color: "#e2e8f0",
+                      fontSize: 12, fontFamily: "inherit", textAlign: "center"
+                    }}
+                  />
+                  <span style={{ fontSize: 10, color: "#475569" }}>ดวง</span>
+                  <button onClick={() => removeItem(cat.id, idx)} style={{
+                    background: "none", border: "1px solid #374151", borderRadius: 6,
+                    color: "#ef4444", fontSize: 14, cursor: "pointer", padding: "4px 8px",
+                    fontFamily: "inherit"
+                  }}>✕</button>
+                </div>
+              ))}
+
+              <button onClick={() => addItem(cat.id)} style={{
+                background: "none", border: "1px dashed #1e293b", borderRadius: 8,
+                padding: "7px 12px", color: "#475569", fontSize: 12, cursor: "pointer",
+                width: "100%", fontFamily: "inherit"
+              }}>
+                ➕ เพิ่ม{cat.name}
+              </button>
             </div>
           ))}
-          <button
-            onClick={() => setOpen(false)}
-            style={{
-              background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", border: "none",
-              borderRadius: 8, padding: "10px 20px", color: "white",
-              fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%", fontFamily: "inherit"
-            }}
-          >
+
+          <button onClick={() => setOpen(false)} style={{
+            background: "linear-gradient(135deg, #3b82f6, #8b5cf6)", border: "none",
+            borderRadius: 8, padding: "10px 20px", color: "white",
+            fontSize: 13, fontWeight: 600, cursor: "pointer", width: "100%",
+            fontFamily: "inherit", marginTop: 8
+          }}>
             ✓ บันทึกอุปกรณ์
           </button>
         </div>
