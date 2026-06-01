@@ -113,7 +113,7 @@ const LIGHTING_PRESETS = {
 };
 
 
- const analyzeImageMood = async (imageBase64, mood, shotType, equipment = []) => {
+ const analyzeImageMood = async (imageBase64, mood, shotType, equipment = [], sceneDescription = "") => {
   const selectedMood = MOODS.find(m => m.id === mood);
   try {
     const response = await fetch("/api/analyze", {
@@ -122,6 +122,12 @@ const LIGHTING_PRESETS = {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
+  imageBase64,
+  mood,
+  shotType,
+  equipment,
+  sceneDescription
+})
         imageBase64,
         mood,
         shotType,
@@ -141,6 +147,7 @@ export default function App() {
   const [selectedShot, setSelectedShot] = useState(SHOT_TYPES[0]);
   const [uploadedImage, setUploadedImage] = useState(null);
   const [imageBase64, setImageBase64] = useState(null);
+  const [sceneDescription, setSceneDescription] = useState("");
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -196,7 +203,7 @@ export default function App() {
     reader.readAsDataURL(file);
     setStep(2);
   }, []);
-
+const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment, sceneDescription);
   const handleAnalyze = async () => {
     if (!selectedMood || !imageBase64) return;
     
@@ -354,7 +361,22 @@ export default function App() {
             <div style={{ position: "relative", textAlign: "center" }}>
               <img src={uploadedImage} alt="frame" style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 10, objectFit: "contain", border: "1px solid #1e293b" }} />
               <div style={{ marginTop: 6, fontSize: 12, color: "#60a5fa" }}>✓ โหลดภาพแล้ว — กดปุ่มด้านบนเพื่อถ่ายใหม่</div>
-            </div>
+            </div>{uploadedImage && (
+  <div style={{ marginTop: 10 }}>
+    <textarea
+      value={sceneDescription}
+      onChange={e => setSceneDescription(e.target.value)}
+      placeholder="อธิบายฉาก เช่น ตัวละคร 2 คนนั่งคุยกัน, subject ยืนหน้าต่างมองวิว, นักดนตรีบนเวที..."
+      rows={3}
+      style={{
+        width: "100%", background: "#0d1117", border: "1px solid #1e293b",
+        borderRadius: 8, padding: "10px 12px", color: "#e2e8f0",
+        fontSize: 13, fontFamily: "inherit", resize: "vertical",
+        lineHeight: 1.6, boxSizing: "border-box"
+      }}
+    />
+  </div>
+)}
           )}
         </div>
 

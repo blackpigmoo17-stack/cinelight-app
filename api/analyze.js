@@ -1,7 +1,7 @@
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { imageBase64, mood, shotType, equipment } = req.body;
+  const { imageBase64, mood, shotType, equipment, sceneDescription } = req.body;
   const apiKey = process.env.ANTHROPIC_API_KEY;
 
   if (!apiKey) return res.status(500).json({ error: "API Key not configured" });
@@ -24,7 +24,9 @@ module.exports = async function handler(req, res) {
 
   const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดแสงระดับ Hollywood
 
-วิเคราะห์ภาพนี้และออกแบบการจัดแสงแบบ ${mood} สำหรับช็อตประเภท: ${shotType}
+วิเคราะห์ภาพนี้และออกแบบการจัดแสงแบบ ${mood} สำหรับช็อตประเภท: ${shotType}คำอธิบายฉากจากผู้กำกับ: ${sceneDescription || "ไม่ได้ระบุ"}
+
+อ้างอิงสไตล์การจัดแสงของ John Higgins, Cory Geryak, Dan Cornwall — วางแผนแสงแบบมืออาชีพระดับ Hollywood
 
 อุปกรณ์ที่ผู้ใช้มี:
 ${equipmentText}
