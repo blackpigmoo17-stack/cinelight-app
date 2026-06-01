@@ -198,14 +198,14 @@ export default function App() {
     reader.readAsDataURL(file);
     setStep(2);
   }, []);
-const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment, sceneDescription);
+
   const handleAnalyze = async () => {
     if (!selectedMood || !imageBase64) return;
     
     setLoading(true);
     setStep(4);
     try {
-    const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment);
+    const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment, sceneDescription);
       setAnalysis(result);
     } catch (err) {
       setAnalysis({ scene_analysis: `เกิดข้อผิดพลาด: ${err.message}`, lighting_recommendation: "", key_challenge: "", pro_tip: "" });
