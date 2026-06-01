@@ -356,7 +356,8 @@ export default function App() {
             <div style={{ position: "relative", textAlign: "center" }}>
               <img src={uploadedImage} alt="frame" style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 10, objectFit: "contain", border: "1px solid #1e293b" }} />
               <div style={{ marginTop: 6, fontSize: 12, color: "#60a5fa" }}>✓ โหลดภาพแล้ว — กดปุ่มด้านบนเพื่อถ่ายใหม่</div>
-            </div>{uploadedImage && (
+          </div>
+{uploadedImage && (
   <div style={{ marginTop: 10 }}>
     <textarea
       value={sceneDescription}
