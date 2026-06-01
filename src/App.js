@@ -128,11 +128,6 @@ const LIGHTING_PRESETS = {
   equipment,
   sceneDescription
 })
-        imageBase64,
-        mood,
-        shotType,
-        equipment
-      })
     });
   const data = await response.json();
 if (data.error) throw new Error(data.error);
