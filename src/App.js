@@ -352,29 +352,26 @@ export default function App() {
             </button>
           </div>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileUpload} />
-          {uploadedImage && (
-            <div style={{ position: "relative", textAlign: "center" }}>
-              <img src={uploadedImage} alt="frame" style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 10, objectFit: "contain", border: "1px solid #1e293b" }} />
-              <div style={{ marginTop: 6, fontSize: 12, color: "#60a5fa" }}>✓ โหลดภาพแล้ว — กดปุ่มด้านบนเพื่อถ่ายใหม่</div>
-          </div>
 {uploadedImage && (
-  <div style={{ marginTop: 10 }}>
-    <textarea
-      value={sceneDescription}
-      onChange={e => setSceneDescription(e.target.value)}
-      placeholder="อธิบายฉาก เช่น ตัวละคร 2 คนนั่งคุยกัน, subject ยืนหน้าต่างมองวิว, นักดนตรีบนเวที..."
-      rows={3}
-      style={{
-        width: "100%", background: "#0d1117", border: "1px solid #1e293b",
-        borderRadius: 8, padding: "10px 12px", color: "#e2e8f0",
-        fontSize: 13, fontFamily: "inherit", resize: "vertical",
-        lineHeight: 1.6, boxSizing: "border-box"
-      }}
-    />
+  <div style={{ position: "relative", textAlign: "center" }}>
+    <img src={uploadedImage} alt="frame" style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 10, objectFit: "contain", border: "1px solid #1e293b" }} />
+    <div style={{ marginTop: 6, fontSize: 12, color: "#60a5fa" }}>✓ โหลดภาพแล้ว — กดปุ่มด้านบนเพื่อถ่ายใหม่</div>
+    <div style={{ marginTop: 10 }}>
+      <textarea
+        value={sceneDescription}
+        onChange={e => setSceneDescription(e.target.value)}
+        placeholder="อธิบายฉาก เช่น ตัวละคร 2 คนนั่งคุยกัน, subject ยืนหน้าต่างมองวิว, นักดนตรีบนเวที..."
+        rows={3}
+        style={{
+          width: "100%", background: "#0d1117", border: "1px solid #1e293b",
+          borderRadius: 8, padding: "10px 12px", color: "#e2e8f0",
+          fontSize: 13, fontFamily: "inherit", resize: "vertical",
+          lineHeight: 1.6, boxSizing: "border-box"
+        }}
+      />
+    </div>
   </div>
 )}
-          )}
-        </div>
 
         {/* Step 2 */}
         <div style={{ marginBottom: 28, opacity: step >= 2 ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= 2 ? "auto" : "none" }}>
