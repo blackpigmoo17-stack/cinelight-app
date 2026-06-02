@@ -112,9 +112,7 @@ const LIGHTING_PRESETS = {
   },
 };
 
-
- const analyzeImageMood = async (imageBase64, mood, shotType, equipment = [], sceneDescription = "") => {
-  const selectedMood = MOODS.find(m => m.id === mood);
+const analyzeImageMood = async (imageBase64, mood, shotType, equipment = [], sceneDescription = "") => {
   try {
     const response = await fetch("/api/analyze", {
       method: "POST",
@@ -122,16 +120,16 @@ const LIGHTING_PRESETS = {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-  imageBase64,
-  mood,
-  shotType,
-  equipment,
-  sceneDescription
-})
+        imageBase64,
+        mood,
+        shotType,
+        equipment,
+        sceneDescription
+      })
     });
-  const data = await response.json();
-if (data.error) throw new Error(data.error);
-return data;
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    return data;
   } catch (err) {
     throw err;
   }
@@ -201,11 +199,10 @@ export default function App() {
 
   const handleAnalyze = async () => {
     if (!selectedMood || !imageBase64) return;
-    
     setLoading(true);
     setStep(4);
     try {
-    const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment, sceneDescription);
+      const result = await analyzeImageMood(imageBase64, selectedMood, selectedShot, selectedEquipment, sceneDescription);
       setAnalysis(result);
     } catch (err) {
       setAnalysis({ scene_analysis: `เกิดข้อผิดพลาด: ${err.message}`, lighting_recommendation: "", key_challenge: "", pro_tip: "" });
@@ -260,30 +257,23 @@ export default function App() {
           touchAction: "none", userSelect: "none",
           overflow: "hidden"
         }}>
-          {/* Video - true fullscreen, no scroll */}
           <video ref={videoRef} autoPlay playsInline muted
             style={{
               position: "fixed", top: 0, left: 0,
               width: "100vw", height: "100vh",
               objectFit: "cover", zIndex: 1
             }} />
-
-          {/* Cancel - fixed top left */}
           <button onClick={stopCamera} style={{
             position: "fixed", top: 24, left: 20, zIndex: 9999,
             background: "rgba(0,0,0,0.65)", border: "1px solid rgba(255,255,255,0.25)",
             borderRadius: 30, padding: "10px 20px", color: "white",
             fontSize: 15, fontWeight: 700, cursor: "pointer"
           }}>✕</button>
-
-          {/* Hint - fixed top right */}
           <div style={{
             position: "fixed", top: 24, right: 20, zIndex: 9999,
             background: "rgba(0,0,0,0.55)", borderRadius: 8,
             padding: "8px 12px", fontSize: 12, color: "rgba(255,255,255,0.8)"
           }}>จัดเฟรมแล้วกด ⭕</div>
-
-          {/* Shutter - fixed bottom center, NEVER moves */}
           <div style={{
             position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 9999,
             display: "flex", justifyContent: "center", alignItems: "center",
@@ -352,26 +342,27 @@ export default function App() {
             </button>
           </div>
           <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileUpload} />
-{uploadedImage && (
-  <div style={{ position: "relative", textAlign: "center" }}>
-    <img src={uploadedImage} alt="frame" style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 10, objectFit: "contain", border: "1px solid #1e293b" }} />
-    <div style={{ marginTop: 6, fontSize: 12, color: "#60a5fa" }}>✓ โหลดภาพแล้ว — กดปุ่มด้านบนเพื่อถ่ายใหม่</div>
-    <div style={{ marginTop: 10 }}>
-      <textarea
-        value={sceneDescription}
-        onChange={e => setSceneDescription(e.target.value)}
-        placeholder="อธิบายฉาก เช่น ตัวละคร 2 คนนั่งคุยกัน, subject ยืนหน้าต่างมองวิว, นักดนตรีบนเวที..."
-        rows={3}
-        style={{
-          width: "100%", background: "#0d1117", border: "1px solid #1e293b",
-          borderRadius: 8, padding: "10px 12px", color: "#e2e8f0",
-          fontSize: 13, fontFamily: "inherit", resize: "vertical",
-          lineHeight: 1.6, boxSizing: "border-box"
-        }}
-      />
-    </div>
-  </div>
-)}
+          {uploadedImage && (
+            <div style={{ position: "relative", textAlign: "center" }}>
+              <img src={uploadedImage} alt="frame" style={{ maxHeight: 220, maxWidth: "100%", borderRadius: 10, objectFit: "contain", border: "1px solid #1e293b" }} />
+              <div style={{ marginTop: 6, fontSize: 12, color: "#60a5fa" }}>✓ โหลดภาพแล้ว — กดปุ่มด้านบนเพื่อถ่ายใหม่</div>
+              <div style={{ marginTop: 10 }}>
+                <textarea
+                  value={sceneDescription}
+                  onChange={e => setSceneDescription(e.target.value)}
+                  placeholder="อธิบายฉาก เช่น ตัวละคร 2 คนนั่งคุยกัน, subject ยืนหน้าต่างมองวิว, นักดนตรีบนเวที..."
+                  rows={3}
+                  style={{
+                    width: "100%", background: "#0d1117", border: "1px solid #1e293b",
+                    borderRadius: 8, padding: "10px 12px", color: "#e2e8f0",
+                    fontSize: 13, fontFamily: "inherit", resize: "vertical",
+                    lineHeight: 1.6, boxSizing: "border-box"
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Step 2 */}
         <div style={{ marginBottom: 28, opacity: step >= 2 ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= 2 ? "auto" : "none" }}>
@@ -385,7 +376,7 @@ export default function App() {
 
         {/* Equipment Selector */}
         <div style={{ marginBottom: 28, opacity: step >= 2 ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= 2 ? "auto" : "none" }}>
-         <EquipmentSelector equipment={selectedEquipment} onChange={setSelectedEquipment} />
+          <EquipmentSelector equipment={selectedEquipment} onChange={setSelectedEquipment} />
         </div>
 
         {/* Step 3 */}
