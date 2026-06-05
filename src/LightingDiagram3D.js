@@ -29,7 +29,24 @@ const LIGHT_POSITIONS = {
 const LIGHT_COLORS = [
   "#fbbf24","#60a5fa","#f472b6","#34d399","#f97316","#a78bfa","#06b6d4","#ef4444","#e2e8f0","#84cc16"
 ];
-
+const AI_NAME_MAP = {
+  "key": { angle: -40, dist: 0.6, label: "KEY" },
+  "fill": { angle: 40, dist: 0.6, label: "FILL" },
+  "rim": { angle: -150, dist: 0.65, label: "RIM" },
+  "hair": { angle: 180, dist: 0.6, label: "HAIR" },
+  "background": { angle: 180, dist: 0.88, label: "BG" },
+  "back": { angle: 180, dist: 0.88, label: "BG" },
+  "kicker": { angle: 150, dist: 0.65, label: "KICK" },
+  "practical": { angle: 110, dist: 0.5, label: "PRAC" },
+  "ไฟหลัก": { angle: -40, dist: 0.6, label: "KEY" },
+  "ไฟเติม": { angle: 40, dist: 0.6, label: "FILL" },
+  "ไฟขอบ": { angle: -150, dist: 0.65, label: "RIM" },
+  "ไฟผม": { angle: 180, dist: 0.6, label: "HAIR" },
+  "ไฟหลัง": { angle: 180, dist: 0.88, label: "BG" },
+  "ไฟฉาก": { angle: 180, dist: 0.88, label: "BG" },
+  "ไฟคิก": { angle: 150, dist: 0.65, label: "KICK" },
+  "แสงธรรมชาติ": { angle: -45, dist: 0.7, label: "NAT" },
+};
 const DEFAULT_ANGLES = [-40, 40, -150, 150, -90, 90, 170, 10];
 
 export default function LightingDiagram3D({ lights, moodColor }) {
@@ -40,19 +57,31 @@ export default function LightingDiagram3D({ lights, moodColor }) {
   const r = 125;
 
   const lightData = lights.map((light, i) => {
-    const found = Object.entries(LIGHT_POSITIONS).find(([key]) =>
-      light.name.toLowerCase().includes(key.toLowerCase().split(" ")[0]) ||
-      key.toLowerCase().includes(light.name.toLowerCase().split(" ")[0])
-    );
-    const angle = found ? found[1].angle : DEFAULT_ANGLES[i % DEFAULT_ANGLES.length];
-    const dist = found ? found[1].dist : 0.65;
-    const label = found ? found[1].label : `L${i+1}`;
-    // 0 = ด้านหน้า (ล่าง ใกล้กล้อง), 180 = ด้านหลัง (บน)
-    const rad = angle * Math.PI / 180;
-    const lx = cx + Math.sin(rad) * r * dist;
-    const ly = subjectY + Math.cos(rad) * r * dist * 0.85;
-    return { ...light, lx, ly, label, color: LIGHT_COLORS[i % LIGHT_COLORS.length] };
-  });
+  const nameLower = light.name.toLowerCase();
+
+  // 1. หาจาก LIGHT_POSITIONS เดิมก่อน
+  const found = Object.entries(LIGHT_POSITIONS).find(([key]) =>
+    nameLower.includes(key.toLowerCase().split(" ")[0]) ||
+    key.toLowerCase().includes(nameLower.split(" ")[0])
+  );
+
+  // 2. ถ้าไม่เจอ ลอง AI_NAME_MAP
+  const aiFound = !found && Object.entries(AI_NAME_MAP).find(([key]) =>
+    light.name.includes(key) || nameLower.includes(key.toLowerCase())
+  );
+
+  const pos = found
+    ? found[1]
+    : aiFound
+    ? aiFound[1]
+    : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], dist: 0.65, label: `L${i + 1}` };
+
+  const rad = pos.angle * Math.PI / 180;
+  const lx = cx + Math.sin(rad) * r * pos.dist;
+  const ly = subjectY + Math.cos(rad) * r * pos.dist * 0.85;
+
+  return { ...light, lx, ly, label: pos.label, color: LIGHT_COLORS[i % LIGHT_COLORS.length] };
+});
 
   return (
     <div style={{ background: "#060a12", borderRadius: 12, border: "1px solid #1e293b", padding: "12px 8px", marginBottom: 16 }}>
