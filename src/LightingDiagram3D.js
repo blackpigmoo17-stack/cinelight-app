@@ -1,6 +1,5 @@
 import React from "react";
 
-// angle: 0 = ตรงหน้า (ใกล้กล้อง), 180 = ด้านหลัง, 90 = ขวา, -90 = ซ้าย
 const LIGHT_POSITIONS = {
   "Key Light":                      { angle: -40,  dist: 0.6,  label: "KEY" },
   "Key Light (Warm)":               { angle: -40,  dist: 0.6,  label: "KEY" },
@@ -29,6 +28,7 @@ const LIGHT_POSITIONS = {
 const LIGHT_COLORS = [
   "#fbbf24","#60a5fa","#f472b6","#34d399","#f97316","#a78bfa","#06b6d4","#ef4444","#e2e8f0","#84cc16"
 ];
+
 const AI_NAME_MAP = {
   "key": { angle: -40, dist: 0.6, label: "KEY" },
   "fill": { angle: 40, dist: 0.6, label: "FILL" },
@@ -47,41 +47,73 @@ const AI_NAME_MAP = {
   "ไฟคิก": { angle: 150, dist: 0.65, label: "KICK" },
   "แสงธรรมชาติ": { angle: -45, dist: 0.7, label: "NAT" },
 };
+
 const DEFAULT_ANGLES = [-40, 40, -150, 150, -90, 90, 170, 10];
 
-export default function LightingDiagram3D({ lights, moodColor }) {
-  const W = 340, H = 370;
+// ตำแหน่ง subject ตาม position string จาก AI
+const SUBJECT_POSITIONS = {
+  "center":       { ox: 0,    oy: 0 },
+  "left":         { ox: -40,  oy: 0 },
+  "right":        { ox: 40,   oy: 0 },
+  "front":        { ox: 0,    oy: 20 },
+  "back":         { ox: 0,    oy: -20 },
+  "front-left":   { ox: -30,  oy: 20 },
+  "front-right":  { ox: 30,   oy: 20 },
+  "back-left":    { ox: -30,  oy: -20 },
+  "back-right":   { ox: 30,   oy: -20 },
+};
+
+export default function LightingDiagram3D({ lights, moodColor, subjects = [] }) {
+  const W = 340, H = 390;
   const cx = W / 2;
-  const subjectY = H * 0.40;
+  const subjectY = H * 0.42;
   const cameraY = H - 25;
   const r = 125;
 
+  // สร้าง subject list — ถ้าไม่มีจาก AI ให้ใช้ default 1 คน
+  const subjectList = subjects.length > 0 ? subjects : [{ id: 1, label: "Subject", position: "center" }];
+
+  // คำนวณตำแหน่ง subject แต่ละคน
+  const subjectData = subjectList.map(s => {
+    const pos = SUBJECT_POSITIONS[s.position] || SUBJECT_POSITIONS["center"];
+    return { ...s, sx: cx + pos.ox, sy: subjectY + pos.oy };
+  });
+
+  // คำนวณตำแหน่งไฟ
   const lightData = lights.map((light, i) => {
-  const nameLower = light.name.toLowerCase();
+    const nameLower = light.name.toLowerCase();
+    const found = Object.entries(LIGHT_POSITIONS).find(([key]) =>
+      nameLower.includes(key.toLowerCase().split(" ")[0]) ||
+      key.toLowerCase().includes(nameLower.split(" ")[0])
+    );
+    const aiFound = !found && Object.entries(AI_NAME_MAP).find(([key]) =>
+      light.name.includes(key) || nameLower.includes(key.toLowerCase())
+    );
+    const pos = found ? found[1] : aiFound ? aiFound[1]
+      : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], dist: 0.65, label: `L${i + 1}` };
 
-  // 1. หาจาก LIGHT_POSITIONS เดิมก่อน
-  const found = Object.entries(LIGHT_POSITIONS).find(([key]) =>
-    nameLower.includes(key.toLowerCase().split(" ")[0]) ||
-    key.toLowerCase().includes(nameLower.split(" ")[0])
+    const rad = pos.angle * Math.PI / 180;
+    const lx = cx + Math.sin(rad) * r * pos.dist;
+    const ly = subjectY + Math.cos(rad) * r * pos.dist * 0.85;
+
+    // หา target subject
+    const targetId = light.target_subject_id || 1;
+    const target = subjectData.find(s => s.id === targetId) || subjectData[0];
+
+    return { ...light, lx, ly, label: pos.label, color: LIGHT_COLORS[i % LIGHT_COLORS.length], target };
+  });
+
+  const drawSubject = (s, isMain) => (
+    <g key={s.id}>
+      <ellipse cx={s.sx} cy={s.sy + 10} rx="10" ry="6" fill="#000" opacity="0.4" />
+      <ellipse cx={s.sx} cy={s.sy + 7} rx="8" ry="5" fill="#1e293b" stroke="#334155" strokeWidth="1" />
+      <circle cx={s.sx} cy={s.sy - 8} r={isMain ? 13 : 10} fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
+      <circle cx={s.sx} cy={s.sy - 1} r="3" fill="#475569" />
+      <text x={s.sx} y={s.sy + 24} textAnchor="middle" fontSize="7" fill="#64748b" fontWeight="bold">
+        {s.label || `S${s.id}`}
+      </text>
+    </g>
   );
-
-  // 2. ถ้าไม่เจอ ลอง AI_NAME_MAP
-  const aiFound = !found && Object.entries(AI_NAME_MAP).find(([key]) =>
-    light.name.includes(key) || nameLower.includes(key.toLowerCase())
-  );
-
-  const pos = found
-    ? found[1]
-    : aiFound
-    ? aiFound[1]
-    : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], dist: 0.65, label: `L${i + 1}` };
-
-  const rad = pos.angle * Math.PI / 180;
-  const lx = cx + Math.sin(rad) * r * pos.dist;
-  const ly = subjectY + Math.cos(rad) * r * pos.dist * 0.85;
-
-  return { ...light, lx, ly, label: pos.label, color: LIGHT_COLORS[i % LIGHT_COLORS.length] };
-});
 
   return (
     <div style={{ background: "#060a12", borderRadius: 12, border: "1px solid #1e293b", padding: "12px 8px", marginBottom: 16 }}>
@@ -115,34 +147,35 @@ export default function LightingDiagram3D({ lights, moodColor }) {
         <line x1={cx} y1={cameraY-18} x2={cx} y2={subjectY+20}
           stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.25" strokeDasharray="6 4" />
 
-        {/* Light beams */}
+        {/* Light beams → target subject */}
         {lightData.map((l, i) => {
-          const dx = cx - l.lx, dy = subjectY - l.ly;
+          const tx = l.target ? l.target.sx : cx;
+          const ty = l.target ? l.target.sy : subjectY;
+          const dx = tx - l.lx, dy = ty - l.ly;
           const d = Math.sqrt(dx*dx + dy*dy);
           if (d === 0) return null;
           const nx = dx/d, ny = dy/d;
           const px = -ny, py = nx;
-          const spread = 28;
+          const spread = 22;
           return (
             <polygon key={i}
-              points={`${l.lx},${l.ly} ${cx+px*spread-nx*10},${subjectY+py*spread-ny*10} ${cx-px*spread-nx*10},${subjectY-py*spread-ny*10}`}
+              points={`${l.lx},${l.ly} ${tx+px*spread-nx*10},${ty+py*spread-ny*10} ${tx-px*spread-nx*10},${ty-py*spread-ny*10}`}
               fill={l.color} opacity="0.1" />
           );
         })}
 
-        {/* Dashed lines to subject */}
-        {lightData.map((l, i) => (
-          <line key={i} x1={l.lx} y1={l.ly} x2={cx} y2={subjectY}
-            stroke={l.color} strokeWidth="1" strokeOpacity="0.35" strokeDasharray="5 3" />
-        ))}
+        {/* Dashed lines → target subject */}
+        {lightData.map((l, i) => {
+          const tx = l.target ? l.target.sx : cx;
+          const ty = l.target ? l.target.sy : subjectY;
+          return (
+            <line key={i} x1={l.lx} y1={l.ly} x2={tx} y2={ty}
+              stroke={l.color} strokeWidth="1.2" strokeOpacity="0.5" strokeDasharray="5 3" />
+          );
+        })}
 
-        {/* Subject */}
-        <ellipse cx={cx} cy={subjectY+10} rx="12" ry="7" fill="#000" opacity="0.4" />
-        <ellipse cx={cx} cy={subjectY+7} rx="9" ry="6" fill="#1e293b" stroke="#334155" strokeWidth="1" />
-        <circle cx={cx} cy={subjectY-8} r="13" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
-        <circle cx={cx} cy={subjectY-1} r="3" fill="#475569" />
-        {lightData[0] && <circle cx={cx} cy={subjectY-8} r="13" fill={lightData[0].color} opacity="0.12" />}
-        <text x={cx} y={subjectY+26} textAnchor="middle" fontSize="7" fill="#64748b" fontWeight="bold">SUBJECT</text>
+        {/* Subjects */}
+        {subjectData.map((s, i) => drawSubject(s, i === 0))}
 
         {/* Light fixtures */}
         {lightData.map((l, i) => (
@@ -153,7 +186,6 @@ export default function LightingDiagram3D({ lights, moodColor }) {
             <circle cx={l.lx} cy={l.ly} r="4" fill={l.color} opacity="0.8" />
             <text x={l.lx} y={l.ly+3} textAnchor="middle" fontSize="6" fontWeight="bold" fill="#0a0f1a">#{i+1}</text>
             <text x={l.lx} y={l.ly-18} textAnchor="middle" fontSize="7.5" fontWeight="bold" fill={l.color}>{l.label}</text>
-            <text x={l.lx} y={l.ly+25} textAnchor="middle" fontSize="6" fill="#475569">{l.temp}</text>
           </g>
         ))}
 
@@ -163,7 +195,7 @@ export default function LightingDiagram3D({ lights, moodColor }) {
         <circle cx={cx} cy={cameraY-8} r="5" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5" />
         <circle cx={cx} cy={cameraY-8} r="2.5" fill="#3b82f6" opacity="0.8" />
         <rect x={cx+8} y={cameraY-15} width="5" height="4" rx="1" fill="#3b82f6" opacity="0.5" />
-        <text x={cx} y={cameraY+8} textAnchor="middle" fontSize="8" fill="#3b82f6" fontWeight="bold">YOU</text>
+        <text x={cx} y={cameraY+8} textAnchor="middle" fontSize="8" fill="#3b82f6" fontWeight="bold">CAM</text>
 
       </svg>
 
@@ -173,7 +205,9 @@ export default function LightingDiagram3D({ lights, moodColor }) {
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, background: "#0d1117", borderRadius: 4, padding: "3px 8px", border: `1px solid ${l.color}44` }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: l.color, flexShrink: 0 }} />
             <span style={{ fontSize: 9, color: "#94a3b8" }}>#{i+1} {l.name.split("/")[0].trim()}</span>
-            <span style={{ fontSize: 9, color: l.color }}>{l.power}</span>
+            {l.target && subjectList.length > 1 && (
+              <span style={{ fontSize: 9, color: "#475569" }}>→ {l.target.label}</span>
+            )}
           </div>
         ))}
       </div>

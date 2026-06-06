@@ -38,7 +38,8 @@ ${equipmentText}
 - ระบุตำแหน่ง มุม ระยะห่าง และ modifier ที่ใช้กับอุปกรณ์แต่ละชิ้น
 
 ตอบเป็นภาษาไทยทั้งหมด ตอบเป็น JSON เท่านั้น ไม่มี markdown:
-{"scene_analysis":"วิเคราะห์ฉาก แสง สภาพแวดล้อม","lighting_recommendation":"แนะนำการจัดแสงโดยรวมโดยใช้อุปกรณ์ที่มี","light_placement_detail":[{"light_name":"ชื่อไฟ เช่น Key Light","equipment_to_use":"ระบุรุ่นอุปกรณ์จากที่ผู้ใช้มี","distance":"ระยะห่างจาก subject","angle":"มุมองศา","stand_height":"ความสูงขาตั้ง","stand_type":"ประเภทขาตั้งที่ใช้","modifier":"modifier ที่ใช้"}],"key_challenge":"ความท้าทายหลักของฉากนี้","pro_tip":"เคล็ดลับระดับมืออาชีพ","budget_tip":"วิธีประหยัดหรือประยุกต์ใช้อุปกรณ์ที่มี"}`;
+{"scene_analysis":"วิเคราะห์ฉาก แสง สภาพแวดล้อม","lighting_recommendation":"แนะนำการจัดแสงโดยรวม","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"ชื่อไฟ เช่น Key Light","equipment_to_use":"ระบุรุ่นอุปกรณ์จากที่ผู้ใช้มี","distance":"ระยะห่างจาก subject","angle":"มุมองศา","stand_height":"ความสูงขาตั้ง","stand_type":"ประเภทขาตั้งที่ใช้","modifier":"modifier ที่ใช้","target_subject_id":1}],"key_challenge":"ความท้าทายหลักของฉากนี้","pro_tip":"เคล็ดลับระดับมืออาชีพ","budget_tip":"วิธีประหยัดหรือประยุกต์ใช้อุปกรณ์ที่มี"}
+
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {

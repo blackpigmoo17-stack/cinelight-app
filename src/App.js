@@ -422,7 +422,23 @@ export default function App() {
                 </div>
               ))}
             </div>
-            <LightingDiagram3D lights={preset.lights} moodColor={mood.color} />
+            <LightingDiagram3D
+  lights={
+    analysis?.light_placement_detail?.length > 0
+      ? analysis.light_placement_detail.map(l => ({
+          name: l.light_name,
+          pos: l.distance || "",
+          temp: "",
+          power: "",
+          type: l.equipment_to_use || "",
+          icon: "💡"
+        }))
+      : preset.lights
+  }
+  moodColor={mood.color}
+subjects={analysis?.subjects || []}
+/>
+/>
             <div style={{ background: "#0a0f1a", border: "1px solid #1e293b", borderRadius: 10, padding: "14px 18px", display: "flex", gap: 20, flexWrap: "wrap" }}>
               {[["F-STOP", preset.fStop, "#60a5fa"], ["ISO", preset.iso, "#a78bfa"], ["SHUTTER", preset.shutter, "#34d399"]].map(([label, val, col]) => (
                 <div key={label}>
