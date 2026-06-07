@@ -1,82 +1,87 @@
 import React from "react";
 
-const LIGHT_POSITIONS = {
-  "Key Light":                      { angle: -40,  dist: 0.6,  label: "KEY" },
-  "Key Light (Warm)":               { angle: -40,  dist: 0.6,  label: "KEY" },
-  "Key Light (Cool)":               { angle: -40,  dist: 0.6,  label: "KEY" },
-  "Hard Key Light":                 { angle: -90,  dist: 0.65, label: "KEY" },
-  "Soft Key Light":                 { angle: -35,  dist: 0.58, label: "KEY" },
-  "Beauty Dish / Large Softbox":    { angle: 0,    dist: 0.55, label: "BEAUTY" },
-  "Fill Light":                     { angle: 40,   dist: 0.6,  label: "FILL" },
-  "Rim / Hair Light":               { angle: 180,  dist: 0.65, label: "RIM" },
-  "Rim Light":                      { angle: -150, dist: 0.65, label: "RIM" },
-  "Rim / Kicker":                   { angle: 150,  dist: 0.65, label: "KICK" },
-  "Hair Light":                     { angle: 180,  dist: 0.6,  label: "HAIR" },
-  "Background Light":               { angle: 180,  dist: 0.88, label: "BG" },
-  "Practical Light":                { angle: 110,  dist: 0.5,  label: "PRAC" },
-  "Practical Red/Green":            { angle: -110, dist: 0.5,  label: "PRAC" },
-  "Practical Candle/Fairy lights":  { angle: 90,   dist: 0.45, label: "PRAC" },
-  "Under Light (Monster Light)":    { angle: 0,    dist: 0.35, label: "UNDER" },
-  "Neon Accent (Cyan)":             { angle: -90,  dist: 0.7,  label: "CYAN" },
-  "Neon Accent (Purple)":           { angle: 90,   dist: 0.7,  label: "PURP" },
-  "Moving Head / Spot":             { angle: -60,  dist: 0.75, label: "MOVE" },
-  "LED RGB Wall":                   { angle: 180,  dist: 0.9,  label: "WALL" },
-  "Haze Machine":                   { angle: 60,   dist: 0.4,  label: "HAZE" },
-  "Natural Key Light":              { angle: -45,  dist: 0.7,  label: "NAT" },
-};
-
 const LIGHT_COLORS = [
-  "#fbbf24","#60a5fa","#f472b6","#34d399","#f97316","#a78bfa","#06b6d4","#ef4444","#e2e8f0","#84cc16"
+  "#fbbf24","#60a5fa","#f472b6","#34d399","#f97316","#a78bfa","#06b6d4","#ef4444"
 ];
 
 const AI_NAME_MAP = {
-  "key": { angle: -40, dist: 0.6, label: "KEY" },
-  "fill": { angle: 40, dist: 0.6, label: "FILL" },
+  "key": { angle: -40, dist: 0.55, label: "KEY" },
+  "fill": { angle: 40, dist: 0.55, label: "FILL" },
   "rim": { angle: -150, dist: 0.65, label: "RIM" },
-  "hair": { angle: 180, dist: 0.6, label: "HAIR" },
-  "background": { angle: 180, dist: 0.88, label: "BG" },
-  "back": { angle: 180, dist: 0.88, label: "BG" },
+  "hair": { angle: 175, dist: 0.6, label: "HAIR" },
+  "background": { angle: 175, dist: 0.85, label: "BG" },
+  "back": { angle: 175, dist: 0.85, label: "BG" },
   "kicker": { angle: 150, dist: 0.65, label: "KICK" },
   "practical": { angle: 110, dist: 0.5, label: "PRAC" },
-  "ไฟหลัก": { angle: -40, dist: 0.6, label: "KEY" },
-  "ไฟเติม": { angle: 40, dist: 0.6, label: "FILL" },
+  "ไฟหลัก": { angle: -40, dist: 0.55, label: "KEY" },
+  "ไฟเติม": { angle: 40, dist: 0.55, label: "FILL" },
   "ไฟขอบ": { angle: -150, dist: 0.65, label: "RIM" },
-  "ไฟผม": { angle: 180, dist: 0.6, label: "HAIR" },
-  "ไฟหลัง": { angle: 180, dist: 0.88, label: "BG" },
-  "ไฟฉาก": { angle: 180, dist: 0.88, label: "BG" },
+  "ไฟผม": { angle: 175, dist: 0.6, label: "HAIR" },
+  "ไฟหลัง": { angle: 175, dist: 0.85, label: "BG" },
+  "ไฟฉาก": { angle: 175, dist: 0.85, label: "BG" },
   "ไฟคิก": { angle: 150, dist: 0.65, label: "KICK" },
   "แสงธรรมชาติ": { angle: -45, dist: 0.7, label: "NAT" },
 };
 
-const DEFAULT_ANGLES = [-40, 40, -150, 150, -90, 90, 170, 10];
-
-// ตำแหน่ง subject ตาม position string จาก AI
-const SUBJECT_POSITIONS = {
-  "center":       { ox: 0,    oy: 0 },
-  "left":         { ox: -40,  oy: 0 },
-  "right":        { ox: 40,   oy: 0 },
-  "front":        { ox: 0,    oy: 20 },
-  "back":         { ox: 0,    oy: -20 },
-  "front-left":   { ox: -30,  oy: 20 },
-  "front-right":  { ox: 30,   oy: 20 },
-  "back-left":    { ox: -30,  oy: -20 },
-  "back-right":   { ox: 30,   oy: -20 },
+const LIGHT_POSITIONS = {
+  "Key Light":                     { angle: -40,  dist: 0.55, label: "KEY" },
+  "Key Light (Warm)":              { angle: -40,  dist: 0.55, label: "KEY" },
+  "Key Light (Cool)":              { angle: -40,  dist: 0.55, label: "KEY" },
+  "Hard Key Light":                { angle: -90,  dist: 0.6,  label: "KEY" },
+  "Soft Key Light":                { angle: -35,  dist: 0.5,  label: "KEY" },
+  "Beauty Dish / Large Softbox":   { angle: 0,    dist: 0.5,  label: "BEAUTY" },
+  "Fill Light":                    { angle: 40,   dist: 0.55, label: "FILL" },
+  "Rim / Hair Light":              { angle: 175,  dist: 0.65, label: "RIM" },
+  "Rim Light":                     { angle: -150, dist: 0.65, label: "RIM" },
+  "Rim / Kicker":                  { angle: 150,  dist: 0.65, label: "KICK" },
+  "Hair Light":                    { angle: 175,  dist: 0.6,  label: "HAIR" },
+  "Background Light":              { angle: 175,  dist: 0.85, label: "BG" },
+  "Practical Light":               { angle: 110,  dist: 0.5,  label: "PRAC" },
+  "Natural Key Light":             { angle: -45,  dist: 0.7,  label: "NAT" },
 };
 
-export default function LightingDiagram3D({ lights, moodColor, subjects = [] }) {
-  const W = 340, H = 390;
-  const cx = W / 2;
-  const subjectY = H * 0.42;
-  const cameraY = H - 25;
-  const r = 125;
+const DEFAULT_ANGLES = [-40, 40, -150, 150, -90, 90, 170, 10];
 
-  // สร้าง subject list — ถ้าไม่มีจาก AI ให้ใช้ default 1 คน
-  const subjectList = subjects.length > 0 ? subjects : [{ id: 1, label: "Subject", position: "center" }];
+const SUBJECT_POSITIONS = {
+  "center":       { ox: 0,   oy: 0 },
+  "left":         { ox: -45, oy: 5 },
+  "right":        { ox: 45,  oy: -5 },
+  "front":        { ox: 0,   oy: 30 },
+  "back":         { ox: 0,   oy: -25 },
+  "front-left":   { ox: -35, oy: 25 },
+  "front-right":  { ox: 35,  oy: 20 },
+  "back-left":    { ox: -35, oy: -20 },
+  "back-right":   { ox: 35,  oy: -25 },
+};
 
-  // คำนวณตำแหน่ง subject แต่ละคน
-  const subjectData = subjectList.map(s => {
+// แปลง world coords → isometric screen coords
+function toIso(x, y) {
+  return {
+    sx: x - y,
+    sy: (x + y) * 0.5,
+  };
+}
+
+export default function LightingDiagram3D({ lights = [], moodColor, subjects = [] }) {
+  const W = 340;
+  const H = 400;
+
+  // origin ของ isometric grid (กลางจอ)
+  const ox = W / 2;
+  const oy = H * 0.42;
+  const scale = 90;
+
+  const subjectList = subjects.length > 0
+    ? subjects
+    : [{ id: 1, label: "Subject", position: "center" }];
+
+  // คำนวณตำแหน่ง subject ใน world space แล้วแปลง iso
+  const subjectData = subjectList.map((s, i) => {
     const pos = SUBJECT_POSITIONS[s.position] || SUBJECT_POSITIONS["center"];
-    return { ...s, sx: cx + pos.ox, sy: subjectY + pos.oy };
+    const wx = pos.ox / 80;
+    const wy = pos.oy / 80;
+    const iso = toIso(wx * scale, wy * scale);
+    return { ...s, sx: ox + iso.sx, sy: oy + iso.sy };
   });
 
   // คำนวณตำแหน่งไฟ
@@ -89,122 +94,170 @@ export default function LightingDiagram3D({ lights, moodColor, subjects = [] }) 
     const aiFound = !found && Object.entries(AI_NAME_MAP).find(([key]) =>
       light.name.includes(key) || nameLower.includes(key.toLowerCase())
     );
-    const pos = found ? found[1] : aiFound ? aiFound[1]
+    const posData = found ? found[1] : aiFound ? aiFound[1]
       : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], dist: 0.65, label: `L${i + 1}` };
 
-    const rad = pos.angle * Math.PI / 180;
-    const lx = cx + Math.sin(rad) * r * pos.dist;
-    const ly = subjectY + Math.cos(rad) * r * pos.dist * 0.85;
+    const rad = posData.angle * Math.PI / 180;
+    const wx = Math.sin(rad) * posData.dist * scale;
+    const wy = Math.cos(rad) * posData.dist * scale;
+    const iso = toIso(wx, wy);
+    const lx = ox + iso.sx;
+    const ly = oy + iso.sy - 70; // ยกขึ้นแทนความสูงขาตั้ง
 
-    // หา target subject
+    const color = LIGHT_COLORS[i % LIGHT_COLORS.length];
     const targetId = light.target_subject_id || 1;
     const target = subjectData.find(s => s.id === targetId) || subjectData[0];
 
-    return { ...light, lx, ly, label: pos.label, color: LIGHT_COLORS[i % LIGHT_COLORS.length], target };
+    // ตำแหน่งฐานขาตั้งบน floor
+    const baseIso = toIso(wx, wy);
+    const bx = ox + baseIso.sx;
+    const by = oy + baseIso.sy;
+
+    return { ...light, lx, ly, bx, by, label: posData.label, color, target };
   });
 
-  const drawSubject = (s, isMain) => (
+  // วาด isometric floor tiles
+  const tileSize = 30;
+  const tiles = [];
+  for (let gx = -3; gx <= 3; gx++) {
+    for (let gy = -3; gy <= 3; gy++) {
+      const iso = toIso(gx * tileSize, gy * tileSize);
+      const cx2 = ox + iso.sx;
+      const cy2 = oy + iso.sy;
+      const half = tileSize;
+      const pts = [
+        `${cx2},${cy2 - half * 0.5}`,
+        `${cx2 + half},${cy2}`,
+        `${cx2},${cy2 + half * 0.5}`,
+        `${cx2 - half},${cy2}`,
+      ].join(" ");
+      const shade = (gx + gy) % 2 === 0 ? "#090d18" : "#0a0f1a";
+      tiles.push(<polygon key={`${gx},${gy}`} points={pts} fill={shade} stroke="#1e3a5f" strokeWidth="0.4" />);
+    }
+  }
+
+  const drawSubject = (s) => (
     <g key={s.id}>
-      <ellipse cx={s.sx} cy={s.sy + 10} rx="10" ry="6" fill="#000" opacity="0.4" />
-      <ellipse cx={s.sx} cy={s.sy + 7} rx="8" ry="5" fill="#1e293b" stroke="#334155" strokeWidth="1" />
-      <circle cx={s.sx} cy={s.sy - 8} r={isMain ? 13 : 10} fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
-      <circle cx={s.sx} cy={s.sy - 1} r="3" fill="#475569" />
-      <text x={s.sx} y={s.sy + 24} textAnchor="middle" fontSize="7" fill="#64748b" fontWeight="bold">
-        {s.label || `S${s.id}`}
-      </text>
+      <ellipse cx={s.sx} cy={s.sy + 8} rx="12" ry="5" fill="#000" opacity="0.45" />
+      {/* Isometric body box */}
+      <polygon
+        points={`${s.sx},${s.sy - 8} ${s.sx + 10},${s.sy - 3} ${s.sx + 10},${s.sy + 8} ${s.sx},${s.sy + 3}`}
+        fill="#1a2535" stroke="#334155" strokeWidth="0.5"
+      />
+      <polygon
+        points={`${s.sx},${s.sy - 8} ${s.sx - 10},${s.sy - 3} ${s.sx - 10},${s.sy + 8} ${s.sx},${s.sy + 3}`}
+        fill="#162030" stroke="#334155" strokeWidth="0.5"
+      />
+      <polygon
+        points={`${s.sx - 10},${s.sy - 3} ${s.sx},${s.sy - 8} ${s.sx + 10},${s.sy - 3} ${s.sx},${s.sy + 2}`}
+        fill="#1e293b" stroke="#475569" strokeWidth="0.5"
+      />
+      {/* Head */}
+      <circle cx={s.sx} cy={s.sy - 18} r="11" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
+      <circle cx={s.sx} cy={s.sy - 18} r="6" fill="#0f172a" stroke="#334155" strokeWidth="1" />
+      {/* Label */}
+      <rect x={s.sx - 36} y={s.sy + 12} width="72" height="18" rx="3" fill="#0d1117" stroke="#33415533" strokeWidth="1" />
+      <text x={s.sx} y={s.sy + 25} textAnchor="middle" fontSize="7" fill="#94a3b8" fontFamily="monospace">{s.label || `S${s.id}`}</text>
     </g>
   );
 
   return (
-    <div style={{ background: "#060a12", borderRadius: 12, border: "1px solid #1e293b", padding: "12px 8px", marginBottom: 16 }}>
+    <div style={{ background: "#060a12", borderRadius: 12, border: "1px solid #1e293b", padding: "10px 8px", marginBottom: 16 }}>
       <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginBottom: 4, textAlign: "center" }}>
-        🎬 TOP VIEW — LIGHTING DIAGRAM
+        🎬 ISOMETRIC — LIGHTING DIAGRAM
       </div>
       <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
 
-        {/* Room */}
-        <rect x="10" y="10" width={W-20} height={H-20} rx="10" fill="#0a0f1a" stroke="#1e293b" strokeWidth="1" />
+        {/* Floor tiles */}
+        {tiles}
 
-        {/* Grid */}
-        {[1,2,3,4,5].map(i => (
-          <g key={i}>
-            <line x1={10+i*(W-20)/6} y1="10" x2={10+i*(W-20)/6} y2={H-10} stroke="#0f2040" strokeWidth="0.5" />
-            <line x1="10" y1={10+i*(H-20)/6} x2={W-10} y2={10+i*(H-20)/6} stroke="#0f2040" strokeWidth="0.5" />
-          </g>
-        ))}
-
-        {/* Labels */}
-        <text x={cx} y="22" textAnchor="middle" fontSize="7" fill="#1e3a5f">↑ ด้านหลัง</text>
-        <text x={cx} y={H-8} textAnchor="middle" fontSize="7" fill="#3b82f6">📷 กล้อง / ด้านหน้า</text>
-
-        {/* Distance rings */}
-        <ellipse cx={cx} cy={subjectY} rx={r*0.82} ry={r*0.7} fill="none" stroke="#1e293b" strokeWidth="0.5" strokeDasharray="3 3" />
-        <ellipse cx={cx} cy={subjectY} rx={r*0.48} ry={r*0.4} fill="none" stroke="#1e293b" strokeWidth="0.5" strokeDasharray="3 3" />
-
-        {/* Camera FOV */}
-        <polygon points={`${cx},${cameraY-18} ${cx-30},${subjectY+28} ${cx+30},${subjectY+28}`}
-          fill="#3b82f6" opacity="0.06" />
-        <line x1={cx} y1={cameraY-18} x2={cx} y2={subjectY+20}
-          stroke="#3b82f6" strokeWidth="1" strokeOpacity="0.25" strokeDasharray="6 4" />
-
-        {/* Light beams → target subject */}
+        {/* Light beams */}
         {lightData.map((l, i) => {
-          const tx = l.target ? l.target.sx : cx;
-          const ty = l.target ? l.target.sy : subjectY;
+          const tx = l.target ? l.target.sx : ox;
+          const ty = l.target ? l.target.sy - 18 : oy;
           const dx = tx - l.lx, dy = ty - l.ly;
-          const d = Math.sqrt(dx*dx + dy*dy);
+          const d = Math.sqrt(dx * dx + dy * dy);
           if (d === 0) return null;
-          const nx = dx/d, ny = dy/d;
+          const nx = dx / d, ny = dy / d;
           const px = -ny, py = nx;
-          const spread = 22;
+          const spread = 18;
           return (
             <polygon key={i}
-              points={`${l.lx},${l.ly} ${tx+px*spread-nx*10},${ty+py*spread-ny*10} ${tx-px*spread-nx*10},${ty-py*spread-ny*10}`}
-              fill={l.color} opacity="0.1" />
+              points={`${l.lx},${l.ly} ${tx + px * spread},${ty + py * spread} ${tx - px * spread},${ty - py * spread}`}
+              fill={l.color} opacity="0.09"
+            />
           );
         })}
 
-        {/* Dashed lines → target subject */}
+        {/* Stand poles */}
+        {lightData.map((l, i) => (
+          <line key={i}
+            x1={l.bx} y1={l.by}
+            x2={l.lx} y2={l.ly + 8}
+            stroke="#334155" strokeWidth="2" strokeLinecap="round"
+          />
+        ))}
+
+        {/* Stand bases */}
+        {lightData.map((l, i) => (
+          <g key={i}>
+            <ellipse cx={l.bx} cy={l.by} rx="9" ry="4" fill="#1e293b" stroke="#334155" strokeWidth="0.5" />
+            <line x1={l.bx - 8} y1={l.by + 2} x2={l.bx - 14} y2={l.by + 6} stroke="#334155" strokeWidth="1.2" />
+            <line x1={l.bx + 8} y1={l.by + 2} x2={l.bx + 14} y2={l.by + 6} stroke="#334155" strokeWidth="1.2" />
+          </g>
+        ))}
+
+        {/* Dashed beam lines */}
         {lightData.map((l, i) => {
-          const tx = l.target ? l.target.sx : cx;
-          const ty = l.target ? l.target.sy : subjectY;
+          const tx = l.target ? l.target.sx : ox;
+          const ty = l.target ? l.target.sy - 18 : oy;
           return (
-            <line key={i} x1={l.lx} y1={l.ly} x2={tx} y2={ty}
-              stroke={l.color} strokeWidth="1.2" strokeOpacity="0.5" strokeDasharray="5 3" />
+            <line key={i}
+              x1={l.lx} y1={l.ly + 8}
+              x2={tx} y2={ty}
+              stroke={l.color} strokeWidth="1" strokeOpacity="0.45" strokeDasharray="5 3"
+            />
           );
         })}
 
         {/* Subjects */}
-        {subjectData.map((s, i) => drawSubject(s, i === 0))}
+        {subjectData.map(s => drawSubject(s))}
 
         {/* Light fixtures */}
         {lightData.map((l, i) => (
           <g key={i}>
-            <circle cx={l.lx} cy={l.ly} r="20" fill={l.color} opacity="0.07" />
-            <circle cx={l.lx} cy={l.ly} r="14" fill="#0d1117" stroke={l.color} strokeWidth="1.5" />
-            <circle cx={l.lx} cy={l.ly} r="8" fill={l.color} opacity="0.35" />
-            <circle cx={l.lx} cy={l.ly} r="4" fill={l.color} opacity="0.8" />
-            <text x={l.lx} y={l.ly+3} textAnchor="middle" fontSize="6" fontWeight="bold" fill="#0a0f1a">#{i+1}</text>
-            <text x={l.lx} y={l.ly-18} textAnchor="middle" fontSize="7.5" fontWeight="bold" fill={l.color}>{l.label}</text>
+            <circle cx={l.lx} cy={l.ly} r="16" fill={l.color} opacity="0.07" />
+            <rect x={l.lx - 11} y={l.ly - 7} width="22" height="14" rx="3"
+              fill="#0d1117" stroke={l.color} strokeWidth="1.5" />
+            <rect x={l.lx - 7} y={l.ly - 4} width="14" height="8" rx="2"
+              fill={l.color} opacity="0.55" />
+            <text x={l.lx} y={l.ly - 12} textAnchor="middle" fontSize="7.5"
+              fontWeight="bold" fill={l.color} fontFamily="monospace">{l.label}</text>
+            <text x={l.lx} y={l.ly + 18} textAnchor="middle" fontSize="6.5"
+              fill="#475569" fontFamily="monospace">#{i + 1}</text>
           </g>
         ))}
 
         {/* Camera */}
-        <rect x={cx-14} y={cameraY-16} width="28" height="18" rx="4"
+        <ellipse cx={ox} cy={oy + 95} rx="12" ry="5" fill="#1e293b" stroke="#334155" strokeWidth="0.5" />
+        <line x1={ox - 8} y1={oy + 95} x2={ox - 14} y2={oy + 108} stroke="#334155" strokeWidth="1.5" />
+        <line x1={ox + 8} y1={oy + 95} x2={ox + 14} y2={oy + 108} stroke="#334155" strokeWidth="1.5" />
+        <line x1={ox} y1={oy + 95} x2={ox} y2={oy + 110} stroke="#334155" strokeWidth="1.5" />
+        <rect x={ox - 14} y={oy + 72} width="28" height="18" rx="4"
           fill="#0f172a" stroke="#3b82f6" strokeWidth="2" />
-        <circle cx={cx} cy={cameraY-8} r="5" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5" />
-        <circle cx={cx} cy={cameraY-8} r="2.5" fill="#3b82f6" opacity="0.8" />
-        <rect x={cx+8} y={cameraY-15} width="5" height="4" rx="1" fill="#3b82f6" opacity="0.5" />
-        <text x={cx} y={cameraY+8} textAnchor="middle" fontSize="8" fill="#3b82f6" fontWeight="bold">CAM</text>
+        <circle cx={ox} cy={oy + 81} r="5" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5" />
+        <circle cx={ox} cy={oy + 81} r="2.5" fill="#3b82f6" opacity="0.8" />
+        <text x={ox} y={oy + 118} textAnchor="middle" fontSize="8"
+          fill="#3b82f6" fontWeight="bold" fontFamily="monospace">CAM</text>
 
       </svg>
 
       {/* Legend */}
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center", marginTop: 8, padding: "0 8px" }}>
+      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "center", marginTop: 8, padding: "0 8px" }}>
         {lightData.map((l, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, background: "#0d1117", borderRadius: 4, padding: "3px 8px", border: `1px solid ${l.color}44` }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: l.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 9, color: "#94a3b8" }}>#{i+1} {l.name.split("/")[0].trim()}</span>
+            <span style={{ fontSize: 9, color: "#94a3b8" }}>#{i + 1} {l.name.split("/")[0].trim()}</span>
             {l.target && subjectList.length > 1 && (
               <span style={{ fontSize: 9, color: "#475569" }}>→ {l.target.label}</span>
             )}
