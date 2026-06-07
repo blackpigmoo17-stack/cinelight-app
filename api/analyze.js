@@ -7,7 +7,6 @@ module.exports = async function handler(req, res) {
   if (!apiKey) return res.status(500).json({ error: "API Key not configured" });
   if (!imageBase64) return res.status(400).json({ error: "กรุณาอัปโหลดภาพ" });
 
-  // แปลง equipment object เป็นข้อความที่ AI อ่านง่าย
   const equipmentLabels = {
     led_cob: "LED COB", led_panel: "LED Panel", tube_light: "Tube Light",
     hmi: "HMI/Fresnel", softbox: "Softbox/Modifier", stand: "ขาตั้ง/Boom Arm",
@@ -24,7 +23,8 @@ module.exports = async function handler(req, res) {
 
   const prompt = `คุณคือผู้เชี่ยวชาญด้านการจัดแสงระดับ Hollywood
 
-วิเคราะห์ภาพนี้และออกแบบการจัดแสงแบบ ${mood} สำหรับช็อตประเภท: ${shotType}คำอธิบายฉากจากผู้กำกับ: ${sceneDescription || "ไม่ได้ระบุ"}
+วิเคราะห์ภาพนี้และออกแบบการจัดแสงแบบ ${mood} สำหรับช็อตประเภท: ${shotType}
+คำอธิบายฉากจากผู้กำกับ: ${sceneDescription || "ไม่ได้ระบุ"}
 
 อ้างอิงสไตล์การจัดแสงของ John Higgins, Cory Geryak, Dan Cornwall — วางแผนแสงแบบมืออาชีพระดับ Hollywood
 
@@ -38,8 +38,7 @@ ${equipmentText}
 - ระบุตำแหน่ง มุม ระยะห่าง และ modifier ที่ใช้กับอุปกรณ์แต่ละชิ้น
 
 ตอบเป็นภาษาไทยทั้งหมด ตอบเป็น JSON เท่านั้น ไม่มี markdown:
-{"scene_analysis":"วิเคราะห์ฉาก แสง สภาพแวดล้อม","lighting_recommendation":"แนะนำการจัดแสงโดยรวม","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"ชื่อไฟ เช่น Key Light","equipment_to_use":"ระบุรุ่นอุปกรณ์จากที่ผู้ใช้มี","distance":"ระยะห่างจาก subject","angle":"มุมองศา","stand_height":"ความสูงขาตั้ง","stand_type":"ประเภทขาตั้งที่ใช้","modifier":"modifier ที่ใช้","target_subject_id":1}],"key_challenge":"ความท้าทายหลักของฉากนี้","pro_tip":"เคล็ดลับระดับมืออาชีพ","budget_tip":"วิธีประหยัดหรือประยุกต์ใช้อุปกรณ์ที่มี"}
-
+{"scene_analysis":"วิเคราะห์ฉาก แสง สภาพแวดล้อม","lighting_recommendation":"แนะนำการจัดแสงโดยรวม","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"ชื่อไฟ เช่น Key Light","equipment_to_use":"ระบุรุ่นอุปกรณ์จากที่ผู้ใช้มี","distance":"ระยะห่างจาก subject","angle":"มุมองศา","stand_height":"ความสูงขาตั้ง","stand_type":"ประเภทขาตั้งที่ใช้","modifier":"modifier ที่ใช้","target_subject_id":1}],"key_challenge":"ความท้าทายหลักของฉากนี้","pro_tip":"เคล็ดลับระดับมืออาชีพ","budget_tip":"วิธีประหยัดหรือประยุกต์ใช้อุปกรณ์ที่มี"}`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
