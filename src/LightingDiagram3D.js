@@ -86,6 +86,19 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
 
   // คำนวณตำแหน่งไฟ
   const lightData = lights.map((light, i) => {
+  // ใช้ angle_deg จาก AI โดยตรง ถ้าไม่มีค่อย fallback ไป name matching
+  let angleDeg, label;
+
+  if (typeof light.angle_deg === "number") {
+    angleDeg = light.angle_deg;
+    // กำหนด label จากชื่อไฟ
+    const nameLower = light.name.toLowerCase();
+    const aiFound = Object.entries(AI_NAME_MAP).find(([key]) =>
+      light.name.includes(key) || nameLower.includes(key.toLowerCase())
+    );
+    label = aiFound ? aiFound[1].label : `L${i + 1}`;
+  } else {
+    // fallback: match จากชื่อ
     const nameLower = light.name.toLowerCase();
     const found = Object.entries(LIGHT_POSITIONS).find(([key]) =>
       nameLower.includes(key.toLowerCase().split(" ")[0]) ||
@@ -95,26 +108,29 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       light.name.includes(key) || nameLower.includes(key.toLowerCase())
     );
     const posData = found ? found[1] : aiFound ? aiFound[1]
-      : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], dist: 0.65, label: `L${i + 1}` };
+      : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], label: `L${i + 1}` };
+    angleDeg = posData.angle;
+    label = posData.label;
+  }
 
-    const rad = posData.angle * Math.PI / 180;
-    const wx = Math.sin(rad) * posData.dist * scale;
-    const wy = Math.cos(rad) * posData.dist * scale;
-    const iso = toIso(wx, wy);
-    const lx = ox + iso.sx;
-    const ly = oy + iso.sy - 70; // ยกขึ้นแทนความสูงขาตั้ง
+  const dist = 0.6;
+  const rad = angleDeg * Math.PI / 180;
+  const wx = Math.sin(rad) * dist * scale;
+  const wy = Math.cos(rad) * dist * scale;
+  const iso = toIso(wx, wy);
+  const lx = ox + iso.sx;
+  const ly = oy + iso.sy - 70;
 
-    const color = LIGHT_COLORS[i % LIGHT_COLORS.length];
-    const targetId = light.target_subject_id || 1;
-    const target = subjectData.find(s => s.id === targetId) || subjectData[0];
+  const color = LIGHT_COLORS[i % LIGHT_COLORS.length];
+  const targetId = light.target_subject_id || 1;
+  const target = subjectData.find(s => s.id === targetId) || subjectData[0];
 
-    // ตำแหน่งฐานขาตั้งบน floor
-    const baseIso = toIso(wx, wy);
-    const bx = ox + baseIso.sx;
-    const by = oy + baseIso.sy;
+  const baseIso = toIso(wx, wy);
+  const bx = ox + baseIso.sx;
+  const by = oy + baseIso.sy;
 
-    return { ...light, lx, ly, bx, by, label: posData.label, color, target };
-  });
+  return { ...light, lx, ly, bx, by, label, color, target };
+});
 
   // วาด isometric floor tiles
   const tileSize = 30;

@@ -35,10 +35,11 @@ ${equipmentText}
 - ใช้เฉพาะอุปกรณ์ที่ผู้ใช้มีเท่านั้น ระบุชื่อรุ่นให้ตรงกับที่กรอกมา
 - ถ้าไม่มีอุปกรณ์เพียงพอ ให้แนะนำวิธีประยุกต์ใช้สิ่งที่มี
 - ออกแบบตามหลัก 3-point lighting หรือสูงกว่าตามความเหมาะสม
-- ระบุตำแหน่ง มุม ระยะห่าง และ modifier ที่ใช้กับอุปกรณ์แต่ละชิ้น
+- angle_deg คือองศาตำแหน่งไฟ: 0=ตรงหน้ากล้อง, -45=ซ้ายหน้า, 45=ขวาหน้า, -90=ซ้ายข้าง, 90=ขวาข้าง, -135=ซ้ายหลัง, 135=ขวาหลัง, 180=ด้านหลัง
+- position ของ subject: "center", "left", "right", "front-left", "front-right", "back-left", "back-right"
 
 ตอบเป็นภาษาไทยทั้งหมด ตอบเป็น JSON เท่านั้น ไม่มี markdown:
-{"scene_analysis":"วิเคราะห์ฉาก แสง สภาพแวดล้อม","lighting_recommendation":"แนะนำการจัดแสงโดยรวม","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"ชื่อไฟ เช่น Key Light","equipment_to_use":"ระบุรุ่นอุปกรณ์จากที่ผู้ใช้มี","distance":"ระยะห่างจาก subject","angle":"มุมองศา","stand_height":"ความสูงขาตั้ง","stand_type":"ประเภทขาตั้งที่ใช้","modifier":"modifier ที่ใช้","target_subject_id":1}],"key_challenge":"ความท้าทายหลักของฉากนี้","pro_tip":"เคล็ดลับระดับมืออาชีพ","budget_tip":"วิธีประหยัดหรือประยุกต์ใช้อุปกรณ์ที่มี"}`;
+{"scene_analysis":"วิเคราะห์ฉาก แสง สภาพแวดล้อม","lighting_recommendation":"แนะนำการจัดแสงโดยรวม","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"ชื่อไฟ เช่น Key Light","equipment_to_use":"ระบุรุ่นอุปกรณ์","distance":"ระยะห่างจาก subject","angle_deg":-45,"stand_height":"ความสูงขาตั้ง","stand_type":"ประเภทขาตั้ง","modifier":"modifier ที่ใช้","target_subject_id":1}],"key_challenge":"ความท้าทายหลัก","pro_tip":"เคล็ดลับมืออาชีพ","budget_tip":"วิธีประหยัด"}`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
