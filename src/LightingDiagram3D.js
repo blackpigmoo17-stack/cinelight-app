@@ -44,14 +44,14 @@ const DEFAULT_ANGLES = [-40, 40, -150, 150, -90, 90, 170, 10];
 
 const SUBJECT_POSITIONS = {
   "center":       { ox: 0,   oy: 0 },
-  "left":         { ox: -45, oy: 5 },
-  "right":        { ox: 45,  oy: -5 },
-  "front":        { ox: 0,   oy: 30 },
-  "back":         { ox: 0,   oy: -25 },
-  "front-left":   { ox: -35, oy: 25 },
-  "front-right":  { ox: 35,  oy: 20 },
-  "back-left":    { ox: -35, oy: -20 },
-  "back-right":   { ox: 35,  oy: -25 },
+  "left":         { ox: -35, oy: 0 },
+  "right":        { ox: 35,  oy: 0 },
+  "front":        { ox: 0,   oy: -30 },
+  "back":         { ox: 0,   oy: 30 },
+  "front-left":   { ox: -25, oy: -25 },
+  "front-right":  { ox: 25,  oy: -25 },
+  "back-left":    { ox: -25, oy: 25 },
+  "back-right":   { ox: 25,  oy: 25 },
 };
 
 // แปลง world coords → isometric screen coords
@@ -76,13 +76,11 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
     : [{ id: 1, label: "Subject", position: "center" }];
 
   // คำนวณตำแหน่ง subject ใน world space แล้วแปลง iso
-  const subjectData = subjectList.map((s, i) => {
-    const pos = SUBJECT_POSITIONS[s.position] || SUBJECT_POSITIONS["center"];
-    const wx = pos.ox / 80;
-    const wy = pos.oy / 80;
-    const iso = toIso(wx * scale, wy * scale);
-    return { ...s, sx: ox + iso.sx, sy: oy + iso.sy };
-  });
+ const subjectData = subjectList.map((s, i) => {
+  const pos = SUBJECT_POSITIONS[s.position] || SUBJECT_POSITIONS["center"];
+  const iso = toIso(pos.ox, -pos.oy);
+  return { ...s, sx: ox + iso.sx, sy: oy + iso.sy };
+});
 
   // คำนวณตำแหน่งไฟ
   const lightData = lights.map((light, i) => {
