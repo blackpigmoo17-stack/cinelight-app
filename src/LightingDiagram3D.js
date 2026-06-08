@@ -57,7 +57,7 @@ const SUBJECT_POSITIONS = {
 // แปลง world coords → isometric screen coords
 function toIso(x, y) {
   return {
-    sx: x - y,
+    sx: (x - y) * 0.866,
     sy: (x + y) * 0.5,
   };
 }
@@ -115,8 +115,8 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
 
   const dist = 0.6;
   const rad = angleDeg * Math.PI / 180;
-  const wx = Math.sin(rad) * dist * scale;
-  const wy = Math.cos(rad) * dist * scale;
+const wx = Math.sin(rad) * dist * scale;
+const wy = -Math.cos(rad) * dist * scale;
   const iso = toIso(wx, wy);
   const lx = ox + iso.sx;
   const ly = oy + iso.sy - 70;
