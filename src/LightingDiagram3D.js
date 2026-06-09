@@ -1,280 +1,371 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
+
+const SUBJ_POS = {
+  "center":       { side:0,     depth:0.48 },
+  "left":         { side:-0.5,  depth:0.48 },
+  "right":        { side:0.5,   depth:0.48 },
+  "front":        { side:0,     depth:0.28 },
+  "back":         { side:0,     depth:0.68 },
+  "front-left":   { side:-0.45, depth:0.30 },
+  "front-right":  { side:0.45,  depth:0.30 },
+  "back-left":    { side:-0.45, depth:0.65 },
+  "back-right":   { side:0.45,  depth:0.65 },
+};
 
 const LIGHT_COLORS = [
   "#fbbf24","#60a5fa","#f472b6","#34d399","#f97316","#a78bfa","#06b6d4","#ef4444"
 ];
 
 const AI_NAME_MAP = {
-  "key": { angle: -40, dist: 0.55, label: "KEY" },
-  "fill": { angle: 40, dist: 0.55, label: "FILL" },
-  "rim": { angle: -150, dist: 0.65, label: "RIM" },
-  "hair": { angle: 175, dist: 0.6, label: "HAIR" },
-  "background": { angle: 175, dist: 0.85, label: "BG" },
-  "back": { angle: 175, dist: 0.85, label: "BG" },
-  "kicker": { angle: 150, dist: 0.65, label: "KICK" },
-  "practical": { angle: 110, dist: 0.5, label: "PRAC" },
-  "ไฟหลัก": { angle: -40, dist: 0.55, label: "KEY" },
-  "ไฟเติม": { angle: 40, dist: 0.55, label: "FILL" },
-  "ไฟขอบ": { angle: -150, dist: 0.65, label: "RIM" },
-  "ไฟผม": { angle: 175, dist: 0.6, label: "HAIR" },
-  "ไฟหลัง": { angle: 175, dist: 0.85, label: "BG" },
-  "ไฟฉาก": { angle: 175, dist: 0.85, label: "BG" },
-  "ไฟคิก": { angle: 150, dist: 0.65, label: "KICK" },
-  "แสงธรรมชาติ": { angle: -45, dist: 0.7, label: "NAT" },
+  "key": -45, "fill": 40, "rim": -150, "hair": 175,
+  "background": 175, "back": 175, "kicker": 150, "practical": 110,
+  "ไฟหลัก": -45, "ไฟเติม": 40, "ไฟขอบ": -150, "ไฟผม": 175,
+  "ไฟหลัง": 175, "ไฟฉาก": 175, "ไฟคิก": 150,
 };
 
-const LIGHT_POSITIONS = {
-  "Key Light":                     { angle: -40,  dist: 0.55, label: "KEY" },
-  "Key Light (Warm)":              { angle: -40,  dist: 0.55, label: "KEY" },
-  "Key Light (Cool)":              { angle: -40,  dist: 0.55, label: "KEY" },
-  "Hard Key Light":                { angle: -90,  dist: 0.6,  label: "KEY" },
-  "Soft Key Light":                { angle: -35,  dist: 0.5,  label: "KEY" },
-  "Beauty Dish / Large Softbox":   { angle: 0,    dist: 0.5,  label: "BEAUTY" },
-  "Fill Light":                    { angle: 40,   dist: 0.55, label: "FILL" },
-  "Rim / Hair Light":              { angle: 175,  dist: 0.65, label: "RIM" },
-  "Rim Light":                     { angle: -150, dist: 0.65, label: "RIM" },
-  "Rim / Kicker":                  { angle: 150,  dist: 0.65, label: "KICK" },
-  "Hair Light":                    { angle: 175,  dist: 0.6,  label: "HAIR" },
-  "Background Light":              { angle: 175,  dist: 0.85, label: "BG" },
-  "Practical Light":               { angle: 110,  dist: 0.5,  label: "PRAC" },
-  "Natural Key Light":             { angle: -45,  dist: 0.7,  label: "NAT" },
-};
+function isBGLight(light) {
+  const n = (light.name || '').toLowerCase();
+  return n.includes('bg') || n.includes('background') || n.includes('set light') ||
+    n.includes('ฉาก') || n.includes('หลัง') && n.includes('ไฟ') ||
+    light.target_subject_id === null;
+}
 
-const DEFAULT_ANGLES = [-40, 40, -150, 150, -90, 90, 170, 10];
+function getLightType(light) {
+  const n = (light.type || light.name || '').toLowerCase();
+  if (n.includes('panel') || n.includes('led_panel')) return 'led_panel';
+  if (n.includes('hmi') || n.includes('fresnel')) return 'hmi';
+  if (n.includes('softbox')) return 'softbox';
+  if (n.includes('tube')) return 'tube';
+  return 'led_cob';
+}
 
-const SUBJECT_POSITIONS = {
-  "center":       { ox: 0,   oy: 0 },
-  "left":         { ox: -35, oy: 0 },
-  "right":        { ox: 35,  oy: 0 },
-  "front":        { ox: 0,   oy: -30 },
-  "back":         { ox: 0,   oy: 30 },
-  "front-left":   { ox: -25, oy: -25 },
-  "front-right":  { ox: 25,  oy: -25 },
-  "back-left":    { ox: -25, oy: 25 },
-  "back-right":   { ox: 25,  oy: 25 },
-};
-
-// แปลง world coords → isometric screen coords
-function toIso(x, y) {
-  return {
-    sx: (x - y) * 0.866,
-    sy: (x + y) * 0.5,
-  };
+function getAngleDeg(light, index) {
+  if (typeof light.angle_deg === 'number') return light.angle_deg;
+  const nameLower = (light.name || '').toLowerCase();
+  for (const [key, angle] of Object.entries(AI_NAME_MAP)) {
+    if (nameLower.includes(key.toLowerCase())) return angle;
+  }
+  const defaults = [-45, 40, -150, 150, -90, 90, 170, 10];
+  return defaults[index % defaults.length];
 }
 
 export default function LightingDiagram3D({ lights = [], moodColor, subjects = [] }) {
-  const W = 340;
-  const H = 400;
-
-  // origin ของ isometric grid (กลางจอ)
-  const ox = W / 2;
-  const oy = H * 0.42;
-  const scale = 90;
-
+  const canvasRef = useRef(null);
   const subjectList = subjects.length > 0
     ? subjects
     : [{ id: 1, label: "Subject", position: "center" }];
 
-  // คำนวณตำแหน่ง subject ใน world space แล้วแปลง iso
- const subjectData = subjectList.map((s, i) => {
-  const pos = SUBJECT_POSITIONS[s.position] || SUBJECT_POSITIONS["center"];
-  const iso = toIso(pos.ox, -pos.oy);
-  return { ...s, sx: ox + iso.sx, sy: oy + iso.sy };
-});
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
 
-  // คำนวณตำแหน่งไฟ
-  const lightData = lights.map((light, i) => {
-  // ใช้ angle_deg จาก AI โดยตรง ถ้าไม่มีค่อย fallback ไป name matching
-  let angleDeg, label;
+    const BACK_Y = H * 0.30;
+    const FLOOR_Y = H * 0.92;
+    const BACK_LEFT = W * 0.18;
+    const BACK_RIGHT = W * 0.82;
+    const ROOM_LEFT = W * 0.02;
+    const ROOM_RIGHT = W * 0.98;
 
-  if (typeof light.angle_deg === "number") {
-    angleDeg = light.angle_deg;
-    // กำหนด label จากชื่อไฟ
-    const nameLower = light.name.toLowerCase();
-    const aiFound = Object.entries(AI_NAME_MAP).find(([key]) =>
-      light.name.includes(key) || nameLower.includes(key.toLowerCase())
-    );
-    label = aiFound ? aiFound[1].label : `L${i + 1}`;
-  } else {
-    // fallback: match จากชื่อ
-    const nameLower = light.name.toLowerCase();
-    const found = Object.entries(LIGHT_POSITIONS).find(([key]) =>
-      nameLower.includes(key.toLowerCase().split(" ")[0]) ||
-      key.toLowerCase().includes(nameLower.split(" ")[0])
-    );
-    const aiFound = !found && Object.entries(AI_NAME_MAP).find(([key]) =>
-      light.name.includes(key) || nameLower.includes(key.toLowerCase())
-    );
-    const posData = found ? found[1] : aiFound ? aiFound[1]
-      : { angle: DEFAULT_ANGLES[i % DEFAULT_ANGLES.length], label: `L${i + 1}` };
-    angleDeg = posData.angle;
-    label = posData.label;
-  }
-
-  const dist = 0.6;
-  const rad = angleDeg * Math.PI / 180;
-const wx = Math.sin(rad) * dist * scale;
-const wy = -Math.cos(rad) * dist * scale;
-  const iso = toIso(wx, wy);
-  const lx = ox + iso.sx;
-  const ly = oy + iso.sy - 70;
-
-  const color = LIGHT_COLORS[i % LIGHT_COLORS.length];
-  const targetId = light.target_subject_id || 1;
-  const target = subjectData.find(s => s.id === targetId) || subjectData[0];
-
-  const baseIso = toIso(wx, wy);
-  const bx = ox + baseIso.sx;
-  const by = oy + baseIso.sy;
-
-  return { ...light, lx, ly, bx, by, label, color, target };
-});
-
-  // วาด isometric floor tiles
-  const tileSize = 30;
-  const tiles = [];
-  for (let gx = -3; gx <= 3; gx++) {
-    for (let gy = -3; gy <= 3; gy++) {
-      const iso = toIso(gx * tileSize, gy * tileSize);
-      const cx2 = ox + iso.sx;
-      const cy2 = oy + iso.sy;
-      const half = tileSize;
-      const pts = [
-        `${cx2},${cy2 - half * 0.5}`,
-        `${cx2 + half},${cy2}`,
-        `${cx2},${cy2 + half * 0.5}`,
-        `${cx2 - half},${cy2}`,
-      ].join(" ");
-      const shade = (gx + gy) % 2 === 0 ? "#090d18" : "#0a0f1a";
-      tiles.push(<polygon key={`${gx},${gy}`} points={pts} fill={shade} stroke="#1e3a5f" strokeWidth="0.4" />);
+    function worldToScreen(side, depth, height = 0) {
+      const t = 0.25 + depth * 0.55;
+      const sx = W / 2 + (side * W * 0.42) * (1 - t * 0.55);
+      const sy = BACK_Y + (FLOOR_Y - BACK_Y) * (1 - depth) - height * H * 0.32 * (1 - depth * 0.25);
+      return { x: sx, y: sy };
     }
-  }
 
-  const drawSubject = (s) => (
-    <g key={s.id}>
-      <ellipse cx={s.sx} cy={s.sy + 8} rx="12" ry="5" fill="#000" opacity="0.45" />
-      {/* Isometric body box */}
-      <polygon
-        points={`${s.sx},${s.sy - 8} ${s.sx + 10},${s.sy - 3} ${s.sx + 10},${s.sy + 8} ${s.sx},${s.sy + 3}`}
-        fill="#1a2535" stroke="#334155" strokeWidth="0.5"
-      />
-      <polygon
-        points={`${s.sx},${s.sy - 8} ${s.sx - 10},${s.sy - 3} ${s.sx - 10},${s.sy + 8} ${s.sx},${s.sy + 3}`}
-        fill="#162030" stroke="#334155" strokeWidth="0.5"
-      />
-      <polygon
-        points={`${s.sx - 10},${s.sy - 3} ${s.sx},${s.sy - 8} ${s.sx + 10},${s.sy - 3} ${s.sx},${s.sy + 2}`}
-        fill="#1e293b" stroke="#475569" strokeWidth="0.5"
-      />
-      {/* Head */}
-      <circle cx={s.sx} cy={s.sy - 18} r="11" fill="#1e293b" stroke="#475569" strokeWidth="1.5" />
-      <circle cx={s.sx} cy={s.sy - 18} r="6" fill="#0f172a" stroke="#334155" strokeWidth="1" />
-      {/* Label */}
-      <rect x={s.sx - 36} y={s.sy + 12} width="72" height="18" rx="3" fill="#0d1117" stroke="#33415533" strokeWidth="1" />
-      <text x={s.sx} y={s.sy + 25} textAnchor="middle" fontSize="7" fill="#94a3b8" fontFamily="monospace">{s.label || `S${s.id}`}</text>
-    </g>
-  );
+    function angleToWorld(deg, dist = 0.75) {
+      const rad = deg * Math.PI / 180;
+      const side = Math.sin(rad) * dist * 1.3;
+      const rawDepth = (1 - Math.cos(rad)) * 0.5 * dist + 0.08;
+      return { side, depth: Math.max(0.05, Math.min(0.92, rawDepth)) };
+    }
+
+    function drawRoom() {
+      // Floor
+      ctx.beginPath();
+      ctx.moveTo(ROOM_LEFT, FLOOR_Y); ctx.lineTo(BACK_LEFT, BACK_Y);
+      ctx.lineTo(BACK_RIGHT, BACK_Y); ctx.lineTo(ROOM_RIGHT, FLOOR_Y);
+      ctx.closePath();
+      ctx.fillStyle = '#080c18'; ctx.fill();
+      ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 1; ctx.stroke();
+
+      ctx.strokeStyle = '#0f2040'; ctx.lineWidth = 0.5;
+      for (let i = 1; i < 5; i++) {
+        const t = i / 5;
+        const y = BACK_Y + (FLOOR_Y - BACK_Y) * t;
+        const x1 = BACK_LEFT + (ROOM_LEFT - BACK_LEFT) * t;
+        const x2 = BACK_RIGHT + (ROOM_RIGHT - BACK_RIGHT) * t;
+        ctx.beginPath(); ctx.moveTo(x1, y); ctx.lineTo(x2, y); ctx.stroke();
+      }
+      for (let i = 1; i < 6; i++) {
+        const t = i / 6;
+        const bx = BACK_LEFT + (BACK_RIGHT - BACK_LEFT) * t;
+        const fx = ROOM_LEFT + (ROOM_RIGHT - ROOM_LEFT) * t;
+        ctx.beginPath(); ctx.moveTo(bx, BACK_Y); ctx.lineTo(fx, FLOOR_Y); ctx.stroke();
+      }
+
+      // Back wall
+      ctx.fillStyle = '#060910';
+      ctx.beginPath();
+      ctx.moveTo(BACK_LEFT, BACK_Y); ctx.lineTo(BACK_RIGHT, BACK_Y);
+      ctx.lineTo(BACK_RIGHT, H * 0.02); ctx.lineTo(BACK_LEFT, H * 0.02);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 1; ctx.stroke();
+
+      ctx.strokeStyle = '#0f1f35'; ctx.lineWidth = 0.4;
+      for (let i = 1; i < 4; i++) {
+        const x = BACK_LEFT + (BACK_RIGHT - BACK_LEFT) * i / 4;
+        ctx.beginPath(); ctx.moveTo(x, H * 0.02); ctx.lineTo(x, BACK_Y); ctx.stroke();
+      }
+      for (let i = 1; i < 3; i++) {
+        const y = H * 0.02 + (BACK_Y - H * 0.02) * i / 3;
+        ctx.beginPath(); ctx.moveTo(BACK_LEFT, y); ctx.lineTo(BACK_RIGHT, y); ctx.stroke();
+      }
+
+      // Left wall
+      ctx.fillStyle = '#070a14';
+      ctx.beginPath();
+      ctx.moveTo(ROOM_LEFT, FLOOR_Y); ctx.lineTo(BACK_LEFT, BACK_Y);
+      ctx.lineTo(BACK_LEFT, H * 0.02); ctx.lineTo(ROOM_LEFT, H * 0.04);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 0.8; ctx.stroke();
+
+      // Right wall
+      ctx.fillStyle = '#070a14';
+      ctx.beginPath();
+      ctx.moveTo(ROOM_RIGHT, FLOOR_Y); ctx.lineTo(BACK_RIGHT, BACK_Y);
+      ctx.lineTo(BACK_RIGHT, H * 0.02); ctx.lineTo(ROOM_RIGHT, H * 0.04);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 0.8; ctx.stroke();
+
+      // Ceiling
+      ctx.fillStyle = '#04060c';
+      ctx.beginPath();
+      ctx.moveTo(ROOM_LEFT, H * 0.04); ctx.lineTo(BACK_LEFT, H * 0.02);
+      ctx.lineTo(BACK_RIGHT, H * 0.02); ctx.lineTo(ROOM_RIGHT, H * 0.04);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 0.8; ctx.stroke();
+
+      // Labels
+      ctx.font = '8px monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#1e3a5f';
+      ctx.fillText('↑ ด้านหลัง', W / 2, BACK_Y - 6);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillText('CAM / ด้านหน้า', W / 2, FLOOR_Y + 14);
+    }
+
+    function drawSubject(s) {
+      const pos = SUBJ_POS[s.position] || SUBJ_POS["center"];
+      const p = worldToScreen(pos.side, pos.depth, 0);
+      const scale = 0.45 + (1 - pos.depth) * 0.55;
+      const sz = 20 * scale;
+
+      ctx.beginPath();
+      ctx.ellipse(p.x, p.y + 2, sz * 0.75, sz * 0.22, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
+
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 1.5 * scale; ctx.lineCap = 'round';
+      ctx.setLineDash([]);
+
+      ctx.beginPath(); ctx.arc(p.x, p.y - sz * 1.0, sz * 0.38, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p.x, p.y - sz * 0.62); ctx.lineTo(p.x, p.y + sz * 0.22); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x - sz * 0.42, p.y - sz * 0.32); ctx.lineTo(p.x + sz * 0.42, p.y - sz * 0.32); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x - sz * 0.42, p.y - sz * 0.32); ctx.lineTo(p.x - sz * 0.48, p.y + sz * 0.15);
+      ctx.moveTo(p.x + sz * 0.42, p.y - sz * 0.32); ctx.lineTo(p.x + sz * 0.48, p.y + sz * 0.15);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y + sz * 0.22); ctx.lineTo(p.x - sz * 0.22, p.y + sz * 0.75);
+      ctx.moveTo(p.x, p.y + sz * 0.22); ctx.lineTo(p.x + sz * 0.22, p.y + sz * 0.75);
+      ctx.stroke();
+
+      ctx.font = `${8 * scale}px monospace`; ctx.textAlign = 'center';
+      const lw = ctx.measureText(s.label).width + 10;
+      ctx.fillStyle = '#0d1117';
+      ctx.fillRect(p.x - lw / 2, p.y + sz * 0.8, lw, 13 * scale);
+      ctx.strokeStyle = '#33415544'; ctx.lineWidth = 0.8;
+      ctx.strokeRect(p.x - lw / 2, p.y + sz * 0.8, lw, 13 * scale);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillText(s.label, p.x, p.y + sz * 0.8 + 9 * scale);
+
+      return { screenX: p.x, screenY: p.y - sz * 0.3 };
+    }
+
+    function drawLightIcon(x, y, type, color, scale = 1) {
+      ctx.strokeStyle = color; ctx.lineWidth = 1.5 * scale; ctx.setLineDash([]);
+      const s = 13 * scale;
+
+      if (type === 'led_panel') {
+        ctx.strokeRect(x - s, y - s * 0.7, s * 2, s * 1.4);
+        ctx.fillStyle = color + '15'; ctx.fillRect(x - s, y - s * 0.7, s * 2, s * 1.4);
+        [[-0.5,-0.35],[0,-0.35],[0.5,-0.35],[-0.5,0.1],[0,0.1],[0.5,0.1],[-0.5,0.42],[0,0.42],[0.5,0.42]].forEach(([dx, dy]) => {
+          ctx.beginPath(); ctx.arc(x + dx * s * 1.4, y + dy * s * 1.5, 1.5 * scale, 0, Math.PI * 2);
+          ctx.fillStyle = color; ctx.fill();
+        });
+      } else if (type === 'hmi') {
+        [s, s * 0.7, s * 0.42, s * 0.18].forEach(r => {
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+        });
+        ctx.beginPath(); ctx.arc(x, y, 2 * scale, 0, Math.PI * 2);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.lineWidth = 1 * scale; ctx.strokeRect(x - s, y - s, s * 2, s * 2);
+      } else if (type === 'softbox') {
+        const pts = [];
+        for (let i = 0; i < 8; i++) {
+          const a = i * Math.PI / 4 - Math.PI / 8;
+          pts.push([x + Math.cos(a) * s, y + Math.sin(a) * s * 0.75]);
+        }
+        ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+        pts.forEach(p => ctx.lineTo(p[0], p[1])); ctx.closePath();
+        ctx.fillStyle = color + '10'; ctx.fill(); ctx.stroke();
+        for (let i = -2; i <= 2; i++) {
+          ctx.beginPath(); ctx.moveTo(x - s + 3, y + i * s * 0.22); ctx.lineTo(x + s - 3, y + i * s * 0.22);
+          ctx.globalAlpha = 0.25; ctx.stroke(); ctx.globalAlpha = 1;
+        }
+      } else {
+        ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, s * 0.62, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, s * 0.28, 0, Math.PI * 2);
+        ctx.fillStyle = color + '44'; ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, 2.5 * scale, 0, Math.PI * 2);
+        ctx.fillStyle = color; ctx.fill();
+        ctx.lineWidth = 1 * scale; ctx.strokeRect(x - s, y - s, s * 2, s * 2);
+      }
+    }
+
+    function drawStand(bx, by, hx, hy) {
+      ctx.strokeStyle = '#334155'; ctx.lineWidth = 2; ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(hx, hy + 14); ctx.stroke();
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(bx - 10, by + 7); ctx.lineTo(bx, by);
+      ctx.moveTo(bx + 10, by + 7); ctx.lineTo(bx, by);
+      ctx.moveTo(bx, by + 10); ctx.lineTo(bx, by);
+      ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(bx, by + 4, 9, 3.5, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = '#475569'; ctx.lineWidth = 0.8; ctx.stroke();
+    }
+
+    function drawBeam(lx, ly, tx, ty, color) {
+      ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([5, 3]);
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(tx, ty); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.setLineDash([]);
+      const dx = tx - lx, dy = ty - ly, d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 1) return;
+      const nx = dx / d, ny = dy / d, px = -ny * 18, py = nx * 18;
+      ctx.beginPath();
+      ctx.moveTo(lx, ly); ctx.lineTo(tx + px, ty + py); ctx.lineTo(tx - px, ty - py);
+      ctx.closePath();
+      ctx.fillStyle = color; ctx.globalAlpha = 0.06; ctx.fill(); ctx.globalAlpha = 1;
+    }
+
+    function drawBGBeam(lx, ly, color) {
+      const wallX = lx + (W / 2 - lx) * 0.3;
+      const wallY = BACK_Y + 20;
+      ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([5, 3]);
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(wallX, wallY); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(lx, ly); ctx.lineTo(wallX - 20, wallY); ctx.lineTo(wallX + 20, wallY);
+      ctx.closePath();
+      ctx.fillStyle = color; ctx.globalAlpha = 0.07; ctx.fill(); ctx.globalAlpha = 1;
+    }
+
+    function drawLabel(x, y, text, color) {
+      ctx.font = '8px monospace'; ctx.textAlign = 'center';
+      const w = ctx.measureText(text).width + 8;
+      ctx.fillStyle = '#0d1117';
+      ctx.fillRect(x - w / 2, y - 8, w, 13);
+      ctx.strokeStyle = color + '44'; ctx.lineWidth = 0.8;
+      ctx.strokeRect(x - w / 2, y - 8, w, 13);
+      ctx.fillStyle = color;
+      ctx.fillText(text, x, y + 2);
+    }
+
+    // === RENDER ===
+    ctx.clearRect(0, 0, W, H);
+    drawRoom();
+
+    const subjScreenPos = {};
+    subjectList.forEach(s => {
+      const sp = drawSubject(s);
+      subjScreenPos[s.id] = sp;
+    });
+
+    lights.forEach((light, i) => {
+      const color = light.color || LIGHT_COLORS[i % LIGHT_COLORS.length];
+      const angleDeg = getAngleDeg(light, i);
+      const world = angleToWorld(angleDeg, 0.75);
+      const lp = worldToScreen(world.side, world.depth, 0);
+      const hp = worldToScreen(world.side, world.depth, 0.82);
+      const bg = isBGLight(light);
+      const target = !bg ? (subjScreenPos[light.target_subject_id] || subjScreenPos[1]) : null;
+
+      if (bg) {
+        drawBGBeam(hp.x, hp.y, color);
+      } else if (target) {
+        drawBeam(hp.x, hp.y, target.screenX, target.screenY, color);
+      }
+
+      drawStand(lp.x, lp.y, hp.x, hp.y);
+      const scale = 0.55 + (1 - world.depth) * 0.45;
+      drawLightIcon(hp.x, hp.y, getLightType(light), color, scale);
+      drawLabel(hp.x, hp.y - 22 * scale, (light.name || '').split(' ').slice(0, 2).join(' '), color);
+
+      ctx.font = '7px monospace'; ctx.textAlign = 'center';
+      ctx.fillStyle = color + '88';
+      ctx.fillText(`${angleDeg}°`, hp.x, hp.y + 22 * scale);
+    });
+
+    // Camera
+    const camP = worldToScreen(0, -0.02, 0);
+    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.setLineDash([]);
+    ctx.strokeRect(camP.x - 18, camP.y - 12, 36, 22);
+    ctx.beginPath(); ctx.arc(camP.x, camP.y - 1, 7, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(camP.x, camP.y - 1, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#3b82f6'; ctx.fill();
+    ctx.strokeRect(camP.x + 10, camP.y - 10, 8, 6);
+    ctx.font = 'bold 9px monospace'; ctx.fillStyle = '#3b82f6'; ctx.textAlign = 'center';
+    ctx.fillText('CAM', camP.x, camP.y + 20);
+
+  }, [lights, subjects, moodColor, subjectList]);
+
+  const legendLights = lights.map((l, i) => ({
+    name: l.name,
+    color: l.color || LIGHT_COLORS[i % LIGHT_COLORS.length],
+    isBG: isBGLight(l),
+  }));
 
   return (
-    <div style={{ background: "#060a12", borderRadius: 12, border: "1px solid #1e293b", padding: "10px 8px", marginBottom: 16 }}>
+    <div style={{ background: "#060a12", borderRadius: 12, border: "1px solid #1e293b", padding: "8px", marginBottom: 16 }}>
       <div style={{ fontSize: 10, color: "#475569", letterSpacing: 2, marginBottom: 4, textAlign: "center" }}>
-        🎬 ISOMETRIC — LIGHTING DIAGRAM
+        🎬 3D STUDIO — LIGHTING DIAGRAM
       </div>
-      <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ display: "block" }}>
-
-        {/* Floor tiles */}
-        {tiles}
-
-        {/* Light beams */}
-        {lightData.map((l, i) => {
-          const tx = l.target ? l.target.sx : ox;
-          const ty = l.target ? l.target.sy - 18 : oy;
-          const dx = tx - l.lx, dy = ty - l.ly;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d === 0) return null;
-          const nx = dx / d, ny = dy / d;
-          const px = -ny, py = nx;
-          const spread = 18;
-          return (
-            <polygon key={i}
-              points={`${l.lx},${l.ly} ${tx + px * spread},${ty + py * spread} ${tx - px * spread},${ty - py * spread}`}
-              fill={l.color} opacity="0.09"
-            />
-          );
-        })}
-
-        {/* Stand poles */}
-        {lightData.map((l, i) => (
-          <line key={i}
-            x1={l.bx} y1={l.by}
-            x2={l.lx} y2={l.ly + 8}
-            stroke="#334155" strokeWidth="2" strokeLinecap="round"
-          />
-        ))}
-
-        {/* Stand bases */}
-        {lightData.map((l, i) => (
-          <g key={i}>
-            <ellipse cx={l.bx} cy={l.by} rx="9" ry="4" fill="#1e293b" stroke="#334155" strokeWidth="0.5" />
-            <line x1={l.bx - 8} y1={l.by + 2} x2={l.bx - 14} y2={l.by + 6} stroke="#334155" strokeWidth="1.2" />
-            <line x1={l.bx + 8} y1={l.by + 2} x2={l.bx + 14} y2={l.by + 6} stroke="#334155" strokeWidth="1.2" />
-          </g>
-        ))}
-
-        {/* Dashed beam lines */}
-        {lightData.map((l, i) => {
-          const tx = l.target ? l.target.sx : ox;
-          const ty = l.target ? l.target.sy - 18 : oy;
-          return (
-            <line key={i}
-              x1={l.lx} y1={l.ly + 8}
-              x2={tx} y2={ty}
-              stroke={l.color} strokeWidth="1" strokeOpacity="0.45" strokeDasharray="5 3"
-            />
-          );
-        })}
-
-        {/* Subjects */}
-        {subjectData.map(s => drawSubject(s))}
-
-        {/* Light fixtures */}
-        {lightData.map((l, i) => (
-          <g key={i}>
-            <circle cx={l.lx} cy={l.ly} r="16" fill={l.color} opacity="0.07" />
-            <rect x={l.lx - 11} y={l.ly - 7} width="22" height="14" rx="3"
-              fill="#0d1117" stroke={l.color} strokeWidth="1.5" />
-            <rect x={l.lx - 7} y={l.ly - 4} width="14" height="8" rx="2"
-              fill={l.color} opacity="0.55" />
-            <text x={l.lx} y={l.ly - 12} textAnchor="middle" fontSize="7.5"
-              fontWeight="bold" fill={l.color} fontFamily="monospace">{l.label}</text>
-            <text x={l.lx} y={l.ly + 18} textAnchor="middle" fontSize="6.5"
-              fill="#475569" fontFamily="monospace">#{i + 1}</text>
-          </g>
-        ))}
-
-        {/* Camera */}
-        <ellipse cx={ox} cy={oy + 95} rx="12" ry="5" fill="#1e293b" stroke="#334155" strokeWidth="0.5" />
-        <line x1={ox - 8} y1={oy + 95} x2={ox - 14} y2={oy + 108} stroke="#334155" strokeWidth="1.5" />
-        <line x1={ox + 8} y1={oy + 95} x2={ox + 14} y2={oy + 108} stroke="#334155" strokeWidth="1.5" />
-        <line x1={ox} y1={oy + 95} x2={ox} y2={oy + 110} stroke="#334155" strokeWidth="1.5" />
-        <rect x={ox - 14} y={oy + 72} width="28" height="18" rx="4"
-          fill="#0f172a" stroke="#3b82f6" strokeWidth="2" />
-        <circle cx={ox} cy={oy + 81} r="5" fill="#1e3a5f" stroke="#3b82f6" strokeWidth="1.5" />
-        <circle cx={ox} cy={oy + 81} r="2.5" fill="#3b82f6" opacity="0.8" />
-        <text x={ox} y={oy + 118} textAnchor="middle" fontSize="8"
-          fill="#3b82f6" fontWeight="bold" fontFamily="monospace">CAM</text>
-
-      </svg>
-
-      {/* Legend */}
-      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "center", marginTop: 8, padding: "0 8px" }}>
-        {lightData.map((l, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, background: "#0d1117", borderRadius: 4, padding: "3px 8px", border: `1px solid ${l.color}44` }}>
+      <canvas
+        ref={canvasRef}
+        width={320}
+        height={380}
+        style={{ width: "100%", height: "auto", display: "block" }}
+      />
+      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "center", marginTop: 8, padding: "0 4px" }}>
+        {legendLights.map((l, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 4, background: "#0d1117", borderRadius: 4, padding: "3px 7px", border: `1px solid ${l.color}44` }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: l.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 9, color: "#94a3b8" }}>#{i + 1} {l.name.split("/")[0].trim()}</span>
-            {l.target && subjectList.length > 1 && (
-              <span style={{ fontSize: 9, color: "#475569" }}>→ {l.target.label}</span>
-            )}
+            <span style={{ fontSize: 9, color: "#94a3b8" }}>
+              {l.name.split('/')[0].trim()}{l.isBG ? ' (ส่องฉาก)' : ''}
+            </span>
+          </div>
+        ))}
+        {subjectList.map((s, i) => (
+          <div key={`s${i}`} style={{ display: "flex", alignItems: "center", gap: 4, background: "#0d1117", borderRadius: 4, padding: "3px 7px", border: "1px solid #33415544" }}>
+            <div style={{ width: 8, height: 8, borderRadius: 0, background: "#475569", flexShrink: 0 }} />
+            <span style={{ fontSize: 9, color: "#64748b" }}>{s.label}</span>
           </div>
         ))}
       </div>
