@@ -148,7 +148,17 @@ export default function App() {
   const [apiKey, setApiKey] = useState(localStorage.getItem("cinelight_apikey") || "");
   const [showApiInput, setShowApiInput] = useState(false);
   const [cameraError, setCameraError] = useState("");
-  const [selectedEquipment, setSelectedEquipment] = useState({});
+  const [selectedEquipment, setSelectedEquipment] = useState(() => {
+  try {
+    const saved = localStorage.getItem("cinelight_equipment");
+    return saved ? JSON.parse(saved) : {};
+  } catch { return {}; }
+});
+useEffect(() => {
+  try {
+    localStorage.setItem("cinelight_equipment", JSON.stringify(selectedEquipment));
+  } catch {}
+}, [selectedEquipment]);
   const fileRef = useRef();
   const videoRef = useRef();
   const streamRef = useRef();
