@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import LightingDiagram3D from "./LightingDiagram3D";
 import EquipmentSelector from "./EquipmentSelector";
 
