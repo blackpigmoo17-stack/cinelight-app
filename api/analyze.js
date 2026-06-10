@@ -63,7 +63,8 @@ ${equipmentText}
         }]
       })
     });
-
+const data = await response.json();
+    if (data.error) throw new Error(data.error.message || data.error);
    const text = data.content[0].text;
 let clean = text.replace(/```json|```/g, "").trim();
 // หา JSON object ที่อยู่ในข้อความ
