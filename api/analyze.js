@@ -32,16 +32,15 @@ module.exports = async function handler(req, res) {
 ${equipmentText}
 
 กฎสำคัญ:
-- วิเคราะห์สภาพแวดล้อมจริงในภาพอย่างละเอียด: มุมห้อง ผนัง เพดาน หน้าต่าง ประตู เฟอร์นิเจอร์ ชั้นวาง พื้นผิว แสงธรรมชาติ
-- หาจุดซ่อนไฟที่สร้างสรรค์: หลังเฟอร์นิเจอร์ ใต้ชั้นวาง มุมห้อง บนเพดาน ข้างประตู
-- แนะนำการ bounce แสงจากพื้นผิวที่มีในฉาก เช่น ผนังขาว เพดาน โต๊ะ กระจก
-- ใช้เฉพาะอุปกรณ์ที่ผู้ใช้มีเท่านั้น ถ้าไม่มีพอให้แนะนำวิธีประยุกต์ใช้
-- คิดนอกกรอบ 3-point lighting พื้นฐาน หาวิธีที่ทำให้ภาพดูน่าทึ่ง
+- วิเคราะห์สภาพแวดล้อมจริงในภาพอย่างละเอียด
+- หาจุดซ่อนไฟที่สร้างสรรค์ในฉาก
+- แนะนำการ bounce แสงจากพื้นผิวที่มีในฉาก
+- ใช้เฉพาะอุปกรณ์ที่ผู้ใช้มีเท่านั้น
 - angle_deg: 0=ตรงหน้ากล้อง, -45=ซ้ายหน้า, 45=ขวาหน้า, -90=ซ้ายข้าง, 90=ขวาข้าง, -135=ซ้ายหลัง, 135=ขวาหลัง, 180=ด้านหลัง
 - position ของ subject: center, left, right, front-left, front-right, back-left, back-right
 
-ตอบเป็นภาษาไทย ตอบเป็น JSON เท่านั้น ไม่มี markdown:
-{"scene_analysis":"วิเคราะห์ฉากโดยละเอียด รวมถึงสภาพแวดล้อม แสงธรรมชาติ พื้นผิว และโอกาสพิเศษที่เห็นในภาพ","environment":{"room_type":"ประเภทห้อง/สถานที่","natural_light":"แสงธรรมชาติที่มี","surfaces":"พื้นผิวที่ bounce แสงได้","furniture":"เฟอร์นิเจอร์และสิ่งของสำคัญ","hide_spots":"จุดซ่อนไฟที่เห็นในฉาก"},"lighting_recommendation":"แนะนำการจัดแสงโดยรวมแบบ creative และ advanced","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"ชื่อไฟ","equipment_to_use":"ระบุรุ่นอุปกรณ์","distance":"ระยะห่าง","angle_deg":-45,"stand_height":"ความสูง","stand_type":"ประเภทขาตั้ง","modifier":"modifier","hide_tip":"วิธีซ่อนหรือ integrate ไฟในฉากให้ดูธรรมชาติ","target_subject_id":1}],"creative_opportunities":"โอกาสพิเศษที่เห็นในฉากนี้ เช่น bounce จากผนัง ซ่อนไฟหลังของ practical light","key_challenge":"ความท้าทายหลัก","pro_tip":"เคล็ดลับระดับมืออาชีพที่เฉพาะสำหรับฉากนี้","budget_tip":"วิธีประหยัดหรือประยุกต์ใช้อุปกรณ์ที่มี"}`;
+ตอบเป็น JSON เท่านั้น ไม่มี markdown ไม่มีข้อความนอก JSON:
+{"scene_analysis":"วิเคราะห์ฉาก","environment":{"room_type":"ประเภทห้อง","natural_light":"แสงธรรมชาติ","surfaces":"พื้นผิว bounce","furniture":"เฟอร์นิเจอร์","hide_spots":"จุดซ่อนไฟ"},"lighting_recommendation":"แนะนำการจัดแสง","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"Key Light","equipment_to_use":"ระบุรุ่น","distance":"2 เมตร","angle_deg":-45,"stand_height":"2 เมตร","stand_type":"ขาตั้ง","modifier":"softbox","hide_tip":"วิธีซ่อนไฟ","target_subject_id":1}],"creative_opportunities":"โอกาสพิเศษ","key_challenge":"ความท้าทาย","pro_tip":"เคล็ดลับ","budget_tip":"ประหยัด"}`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -63,15 +62,29 @@ ${equipmentText}
         }]
       })
     });
-const data = await response.json();
+
+    const data = await response.json();
     if (data.error) throw new Error(data.error.message || data.error);
-   const text = data.content[0].text;
-let clean = text.replace(/```json|```/g, "").trim();
-// หา JSON object ที่อยู่ในข้อความ
-const jsonMatch = clean.match(/\{[\s\S]*\}/);
-if (!jsonMatch) throw new Error("ไม่พบ JSON ในคำตอบ");
-clean = jsonMatch[0];
-res.status(200).json(JSON.parse(clean));} catch (err) {
+    const text = data.content[0].text;
+    let clean = text.replace(/```json|```/g, "").trim();
+    const jsonMatch = clean.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error("ไม่พบ JSON ในคำตอบ");
+    clean = jsonMatch[0];
+    try {
+      res.status(200).json(JSON.parse(clean));
+    } catch (parseErr) {
+      res.status(200).json({
+        scene_analysis: "เกิดข้อผิดพลาดในการแปลง JSON กรุณาลองใหม่",
+        lighting_recommendation: "",
+        light_placement_detail: [],
+        subjects: [{ id: 1, label: "Subject", position: "center" }],
+        creative_opportunities: "",
+        key_challenge: "",
+        pro_tip: "",
+        budget_tip: ""
+      });
+    }
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
