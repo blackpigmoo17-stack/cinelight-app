@@ -485,7 +485,32 @@ useEffect(() => {
                     <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>💡 คำแนะนำการวางไฟ</div>
                     <div style={{ fontSize: 13, color: "#93c5fd", lineHeight: 1.7 }}>{analysis.lighting_recommendation}</div>
                   </div>
-                )}
+                )}{analysis.creative_opportunities && (
+  <div className="analysis-card" style={{ borderColor: "#1a3a2a" }}>
+    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>✨ โอกาสพิเศษในฉากนี้</div>
+    <div style={{ fontSize: 13, color: "#34d399", lineHeight: 1.7 }}>{analysis.creative_opportunities}</div>
+  </div>
+)}
+
+{analysis.environment && (
+  <div className="analysis-card" style={{ borderColor: "#1a2a3a" }}>
+    <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 10 }}>🏠 สภาพแวดล้อม</div>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 6 }}>
+      {[
+        ["📍 สถานที่", analysis.environment.room_type],
+        ["☀️ แสงธรรมชาติ", analysis.environment.natural_light],
+        ["🪞 พื้นผิว bounce", analysis.environment.surfaces],
+        ["🪑 เฟอร์นิเจอร์", analysis.environment.furniture],
+        ["🔦 จุดซ่อนไฟ", analysis.environment.hide_spots],
+      ].filter(([, v]) => v).map(([label, val]) => (
+        <div key={label} style={{ background: "#0a0f1a", borderRadius: 6, padding: "6px 8px" }}>
+          <div style={{ fontSize: 9, color: "#475569", marginBottom: 2 }}>{label}</div>
+          <div style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.4 }}>{val}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
                 {analysis.light_placement_detail && analysis.light_placement_detail.length > 0 && (
                   <div className="analysis-card" style={{ borderColor: "#1a2d3a" }}>
                     <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 12 }}>🎯 รายละเอียดการวางไฟแต่ละดวง</div>
