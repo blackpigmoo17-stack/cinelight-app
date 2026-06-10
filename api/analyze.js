@@ -64,12 +64,13 @@ ${equipmentText}
       })
     });
 
-    const data = await response.json();
-    if (data.error) throw new Error(data.error.message || data.error);
-    const text = data.content[0].text;
-    const clean = text.replace(/```json|```/g, "").trim();
-    res.status(200).json(JSON.parse(clean));
-  } catch (err) {
+   const text = data.content[0].text;
+let clean = text.replace(/```json|```/g, "").trim();
+// หา JSON object ที่อยู่ในข้อความ
+const jsonMatch = clean.match(/\{[\s\S]*\}/);
+if (!jsonMatch) throw new Error("ไม่พบ JSON ในคำตอบ");
+clean = jsonMatch[0];
+res.status(200).json(JSON.parse(clean));} catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
