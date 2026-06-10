@@ -38,6 +38,7 @@ ${equipmentText}
 - ใช้เฉพาะอุปกรณ์ที่ผู้ใช้มีเท่านั้น
 - angle_deg: 0=ตรงหน้ากล้อง, -45=ซ้ายหน้า, 45=ขวาหน้า, -90=ซ้ายข้าง, 90=ขวาข้าง, -135=ซ้ายหลัง, 135=ขวาหลัง, 180=ด้านหลัง
 - position ของ subject: center, left, right, front-left, front-right, back-left, back-right
+ตอบสั้นกระชับ ไม่เกิน 1500 tokens รวมทั้งหมด
 
 ตอบเป็น JSON เท่านั้น ไม่มี markdown ไม่มีข้อความนอก JSON:
 {"scene_analysis":"วิเคราะห์ฉาก","environment":{"room_type":"ประเภทห้อง","natural_light":"แสงธรรมชาติ","surfaces":"พื้นผิว bounce","furniture":"เฟอร์นิเจอร์","hide_spots":"จุดซ่อนไฟ"},"lighting_recommendation":"แนะนำการจัดแสง","subjects":[{"id":1,"label":"นักแสดง 1","position":"center"}],"light_placement_detail":[{"light_name":"Key Light","equipment_to_use":"ระบุรุ่น","distance":"2 เมตร","angle_deg":-45,"stand_height":"2 เมตร","stand_type":"ขาตั้ง","modifier":"softbox","hide_tip":"วิธีซ่อนไฟ","target_subject_id":1}],"creative_opportunities":"โอกาสพิเศษ","key_challenge":"ความท้าทาย","pro_tip":"เคล็ดลับ","budget_tip":"ประหยัด"}`;
@@ -52,7 +53,7 @@ ${equipmentText}
       },
       body: JSON.stringify({
         model: "claude-sonnet-4-6",
-        max_tokens: 4000,
+       max_tokens: 2000,
         messages: [{
           role: "user",
           content: [
