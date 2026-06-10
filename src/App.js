@@ -449,7 +449,8 @@ useEffect(() => {
   }
   moodColor={mood.color}
   subjects={analysis?.subjects || []}
-/>
+imageBase64={imageBase64}
+/>/
             <div style={{ background: "#0a0f1a", border: "1px solid #1e293b", borderRadius: 10, padding: "14px 18px", display: "flex", gap: 20, flexWrap: "wrap" }}>
               {[["F-STOP", preset.fStop, "#60a5fa"], ["ISO", preset.iso, "#a78bfa"], ["SHUTTER", preset.shutter, "#34d399"]].map(([label, val, col]) => (
                 <div key={label}>

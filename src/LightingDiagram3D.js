@@ -44,7 +44,7 @@ function getAngleDeg(light, index) {
   return [-45, 40, -150, 150, -90, 90, 170, 10][index % 8];
 }
 
-export default function LightingDiagram3D({ lights = [], moodColor, subjects = [] }) {
+export default function LightingDiagram3D({ lights = [], moodColor, subjects = [], imageBase64 = null }) {
   const canvasRef = useRef(null);
   const subjectList = subjects.length > 0 ? subjects : [{ id: 1, label: "Subject", position: "center" }];
 
@@ -128,7 +128,6 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       ctx.strokeStyle = '#2a4a6a'; ctx.lineWidth = 2;
       ctx.beginPath(); ctx.moveTo(BACK_L, BACK_Y); ctx.lineTo(ROOM_L, FLOOR_Y); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(BACK_R, BACK_Y); ctx.lineTo(ROOM_R, FLOOR_Y); ctx.stroke();
-
       ctx.font = '8px monospace'; ctx.textAlign = 'center';
       ctx.fillStyle = '#1e3a5f'; ctx.fillText('↑ ด้านหลัง', W / 2, BACK_Y - 5);
     }
@@ -159,11 +158,10 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       ctx.stroke();
 
       ctx.font = `bold ${9 * sc}px monospace`; ctx.textAlign = 'center';
-      const lw = ctx.measureText(s.label).width + 12, lx = p.x - lw / 2, ly = p.y + sz * 0.82;
-      ctx.fillStyle = '#0a1018'; ctx.fillRect(lx, ly, lw, 13 * sc);
-      ctx.strokeStyle = '#2a4a5a'; ctx.lineWidth = 0.8; ctx.strokeRect(lx, ly, lw, 13 * sc);
+      const lw2 = ctx.measureText(s.label).width + 12, lx = p.x - lw2 / 2, ly = p.y + sz * 0.82;
+      ctx.fillStyle = '#0a1018'; ctx.fillRect(lx, ly, lw2, 13 * sc);
+      ctx.strokeStyle = '#2a4a5a'; ctx.lineWidth = 0.8; ctx.strokeRect(lx, ly, lw2, 13 * sc);
       ctx.fillStyle = '#7a9ab0'; ctx.fillText(s.label, p.x, ly + 9 * sc);
-
       return { screenX: p.x, screenY: p.y - sz * 0.2 };
     }
 
@@ -172,10 +170,8 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       if (d < 1) return;
       const nx = dx / d, ny = dy / d, px = -ny, py = nx;
       const spread = lightType === 'hmi' ? 0.12 : lightType === 'panel' ? 0.22 : 0.18;
-
       for (let i = 8; i >= 0; i--) {
-        const alpha = (i / 8) * 0.18;
-        const w = spread * d * (i / 8) * 0.5 + 2;
+        const alpha = (i / 8) * 0.18, w = spread * d * (i / 8) * 0.5 + 2;
         ctx.beginPath();
         ctx.moveTo(lx, ly); ctx.lineTo(tx + px * w, ty + py * w); ctx.lineTo(tx - px * w, ty - py * w);
         ctx.closePath();
@@ -185,22 +181,18 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
         cg.addColorStop(1, color + '08');
         ctx.fillStyle = cg; ctx.fill();
       }
-
       ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.setLineDash([]);
       ctx.globalAlpha = 0.8;
       ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(tx, ty); ctx.stroke();
       ctx.globalAlpha = 1;
-
       const edgeW = spread * d * 0.4;
       ctx.strokeStyle = color; ctx.lineWidth = 0.6; ctx.globalAlpha = 0.3;
       ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(tx + px * edgeW, ty + py * edgeW); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(tx - px * edgeW, ty - py * edgeW); ctx.stroke();
       ctx.globalAlpha = 1;
-
       const hg = ctx.createRadialGradient(tx, ty, 0, tx, ty, 28);
       hg.addColorStop(0, color + '55'); hg.addColorStop(0.5, color + '22'); hg.addColorStop(1, 'transparent');
       ctx.beginPath(); ctx.arc(tx, ty, 28, 0, Math.PI * 2); ctx.fillStyle = hg; ctx.fill();
-
       const fg2 = ctx.createRadialGradient(tx, ty + 40, 0, tx, ty + 40, 35);
       fg2.addColorStop(0, color + '20'); fg2.addColorStop(1, 'transparent');
       ctx.beginPath(); ctx.ellipse(tx, ty + 40, 35, 12, 0, 0, Math.PI * 2); ctx.fillStyle = fg2; ctx.fill();
@@ -210,8 +202,7 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       const wx = lx + (W / 2 - lx) * 0.3, wy = BACK_Y + 18;
       const dx = wx - lx, dy = wy - ly, d = Math.sqrt(dx * dx + dy * dy);
       if (d < 1) return;
-      const nx = dx / d, ny = dy / d, px = -ny, py = nx;
-      const w = 25;
+      const nx = dx / d, ny = dy / d, px = -ny, py = nx, w = 25;
       ctx.beginPath();
       ctx.moveTo(lx, ly); ctx.lineTo(wx + px * w, wy + py * w); ctx.lineTo(wx - px * w, wy - py * w);
       ctx.closePath();
@@ -230,12 +221,11 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       const g = ctx.createRadialGradient(x, y, 0, x, y, s * 2);
       g.addColorStop(0, color + '30'); g.addColorStop(1, 'transparent');
       ctx.beginPath(); ctx.arc(x, y, s * 2, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
-
       if (type === 'panel') {
         ctx.strokeRect(x - s, y - s * 0.65, s * 2, s * 1.3);
         ctx.fillStyle = color + '18'; ctx.fillRect(x - s, y - s * 0.65, s * 2, s * 1.3);
         [[-0.5, -0.28], [0, -0.28], [0.5, -0.28], [-0.5, 0.1], [0, 0.1], [0.5, 0.1], [-0.5, 0.42], [0, 0.42], [0.5, 0.42]].forEach(([dx, dy]) => {
-          ctx.beginPath(); ctx.arc(x + dx * s * 1.3, y + dy * s * 1.35, 1.4 * sc, 0, Math.PI * 2);
+          ctx.beginPath(); ctx.arc(x + dx * s * 1.4, y + dy * s * 1.35, 1.4 * sc, 0, Math.PI * 2);
           ctx.fillStyle = color; ctx.fill();
         });
       } else if (type === 'hmi') {
@@ -254,7 +244,7 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       ctx.beginPath(); ctx.ellipse(bx, by + 6, 10, 3, 0, 0, Math.PI * 2);
       ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.fill();
       ctx.strokeStyle = '#3a5060'; ctx.lineWidth = 3; ctx.setLineDash([]);
-      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(hx, hy + 12); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(hx, hy + 14); ctx.stroke();
       ctx.strokeStyle = '#2a4050'; ctx.lineWidth = 2.5;
       ctx.beginPath();
       ctx.moveTo(bx - 13, by + 9); ctx.lineTo(bx, by);
@@ -276,61 +266,81 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       ctx.fillText(`${deg}°`, x, y + 24 * sc);
     }
 
+    function drawCamera() {
+      const cp = wts(0, -0.02, 0);
+      ctx.beginPath(); ctx.ellipse(cp.x, cp.y + 28, 14, 4, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
+      ctx.strokeStyle = '#2a4050'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(cp.x - 10, cp.y + 12); ctx.lineTo(cp.x - 16, cp.y + 28);
+      ctx.moveTo(cp.x + 10, cp.y + 12); ctx.lineTo(cp.x + 16, cp.y + 28);
+      ctx.moveTo(cp.x, cp.y + 12); ctx.lineTo(cp.x, cp.y + 30);
+      ctx.stroke();
+      ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.fillStyle = '#0a1830';
+      ctx.fillRect(cp.x - 18, cp.y - 12, 36, 22); ctx.strokeRect(cp.x - 18, cp.y - 12, 36, 22);
+      ctx.beginPath(); ctx.arc(cp.x, cp.y - 1, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#0d2040'; ctx.fill(); ctx.strokeStyle = '#3b82f6'; ctx.stroke();
+      ctx.beginPath(); ctx.arc(cp.x, cp.y - 1, 3, 0, Math.PI * 2); ctx.fillStyle = '#3b82f6'; ctx.fill();
+      ctx.strokeRect(cp.x + 10, cp.y - 10, 8, 6);
+      ctx.font = 'bold 9px monospace'; ctx.fillStyle = '#3b82f6'; ctx.textAlign = 'center';
+      ctx.fillText('CAM', cp.x, cp.y + 42);
+    }
+
+    function renderAll() {
+      drawRoom();
+      const sp = {};
+      subjectList.forEach(s => { sp[s.id] = drawSubject(s); });
+
+      lights.forEach((light, i) => {
+        const color = light.color || LIGHT_COLORS[i % LIGHT_COLORS.length];
+        const angleDeg = getAngleDeg(light, i);
+        const world = atw(angleDeg, 0.72);
+        const hp = wts(world.side, world.depth, 0.78);
+        const bg = isBGLight(light);
+        if (bg) drawBGBeam(hp.x, hp.y, color);
+        else {
+          const target = sp[light.target_subject_id] || sp[1];
+          if (target) drawLightBeam(hp.x, hp.y, target.screenX, target.screenY, color, getLightType(light));
+        }
+      });
+
+      lights.forEach((light, i) => {
+        const color = light.color || LIGHT_COLORS[i % LIGHT_COLORS.length];
+        const angleDeg = getAngleDeg(light, i);
+        const world = atw(angleDeg, 0.72);
+        const lp = wts(world.side, world.depth, 0);
+        const hp = wts(world.side, world.depth, 0.78);
+        drawStand(lp.x, lp.y, hp.x, hp.y);
+        const sc = 0.60 + (1 - world.depth) * 0.40;
+        drawLightIcon(hp.x, hp.y, getLightType(light), color, sc);
+        drawLabel(hp.x, hp.y, light.name || '', color, angleDeg, sc);
+      });
+
+      drawCamera();
+    }
+
     // RENDER
     ctx.clearRect(0, 0, W, H);
-    drawRoom();
+    ctx.fillStyle = '#060a12';
+    ctx.fillRect(0, 0, W, H);
 
-    const sp = {};
-    subjectList.forEach(s => { sp[s.id] = drawSubject(s); });
+    if (imageBase64) {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.width / img.height;
+        const drawH = H, drawW = drawH * ratio;
+        const ox = (W - drawW) / 2;
+        ctx.globalAlpha = 0.22;
+        ctx.drawImage(img, ox, 0, drawW, drawH);
+        ctx.globalAlpha = 1;
+        renderAll();
+      };
+      img.src = `data:image/jpeg;base64,${imageBase64}`;
+    } else {
+      renderAll();
+    }
 
-    // Beams ก่อน
-    lights.forEach((light, i) => {
-      const color = light.color || LIGHT_COLORS[i % LIGHT_COLORS.length];
-      const angleDeg = getAngleDeg(light, i);
-      const world = atw(angleDeg, 0.72);
-      const hp = wts(world.side, world.depth, 0.78);
-      const bg = isBGLight(light);
-      if (bg) {
-        drawBGBeam(hp.x, hp.y, color);
-      } else {
-        const target = sp[light.target_subject_id] || sp[1];
-        if (target) drawLightBeam(hp.x, hp.y, target.screenX, target.screenY, color, getLightType(light));
-      }
-    });
-
-    // Stands + icons
-    lights.forEach((light, i) => {
-      const color = light.color || LIGHT_COLORS[i % LIGHT_COLORS.length];
-      const angleDeg = getAngleDeg(light, i);
-      const world = atw(angleDeg, 0.72);
-      const lp = wts(world.side, world.depth, 0);
-      const hp = wts(world.side, world.depth, 0.78);
-      drawStand(lp.x, lp.y, hp.x, hp.y);
-      const sc = 0.60 + (1 - world.depth) * 0.40;
-      drawLightIcon(hp.x, hp.y, getLightType(light), color, sc);
-      drawLabel(hp.x, hp.y, light.name || '', color, angleDeg, sc);
-    });
-
-    // Camera
-    const cp = wts(0, -0.02, 0);
-    ctx.beginPath(); ctx.ellipse(cp.x, cp.y + 28, 14, 4, 0, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0,0,0,0.35)'; ctx.fill();
-    ctx.strokeStyle = '#2a4050'; ctx.lineWidth = 2.5; ctx.setLineDash([]);
-    ctx.beginPath();
-    ctx.moveTo(cp.x - 10, cp.y + 12); ctx.lineTo(cp.x - 16, cp.y + 28);
-    ctx.moveTo(cp.x + 10, cp.y + 12); ctx.lineTo(cp.x + 16, cp.y + 28);
-    ctx.moveTo(cp.x, cp.y + 12); ctx.lineTo(cp.x, cp.y + 30);
-    ctx.stroke();
-    ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = 2; ctx.fillStyle = '#0a1830';
-    ctx.fillRect(cp.x - 18, cp.y - 12, 36, 22); ctx.strokeRect(cp.x - 18, cp.y - 12, 36, 22);
-    ctx.beginPath(); ctx.arc(cp.x, cp.y - 1, 7, 0, Math.PI * 2);
-    ctx.fillStyle = '#0d2040'; ctx.fill(); ctx.strokeStyle = '#3b82f6'; ctx.stroke();
-    ctx.beginPath(); ctx.arc(cp.x, cp.y - 1, 3, 0, Math.PI * 2); ctx.fillStyle = '#3b82f6'; ctx.fill();
-    ctx.strokeRect(cp.x + 10, cp.y - 10, 8, 6);
-    ctx.font = 'bold 9px monospace'; ctx.fillStyle = '#3b82f6'; ctx.textAlign = 'center';
-    ctx.fillText('CAM', cp.x, cp.y + 42);
-
-  }, [lights, subjects, subjectList]);
+  }, [lights, subjects, imageBase64, subjectList]);
 
   const legendLights = lights.map((l, i) => ({
     name: l.name, color: l.color || LIGHT_COLORS[i % LIGHT_COLORS.length], isBG: isBGLight(l),
