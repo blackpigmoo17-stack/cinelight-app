@@ -67,6 +67,7 @@ ${equipmentText}
     const data = await response.json();
     if (data.error) throw new Error(data.error.message || data.error);
     const text = data.content[0].text;
+    console.log("AI RAW RESPONSE:", text.substring(0, 500));
     let clean = text.replace(/```json|```/g, "").trim();
     const jsonMatch = clean.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("ไม่พบ JSON ในคำตอบ");
