@@ -136,8 +136,12 @@ const analyzeImageMood = async (imageBase64, mood, shotType, equipment = [], sce
 };
 
 export default function App() {
-  const [selectedMood, setSelectedMood] = useState(null);
-  const [selectedShot, setSelectedShot] = useState(SHOT_TYPES[0]);
+ const [selectedMood, setSelectedMood] = useState(() => {
+  try { return localStorage.getItem("cinelight_mood") || null; } catch { return null; }
+});
+ const [selectedShot, setSelectedShot] = useState(() => {
+  try { return localStorage.getItem("cinelight_shot") || SHOT_TYPES[0]; } catch { return SHOT_TYPES[0]; }
+});
   const [imageBase64, setImageBase64] = useState(() => {
   try { return localStorage.getItem("cinelight_image") || null; } catch { return null; }
 });
@@ -145,7 +149,9 @@ const [uploadedImage, setUploadedImage] = useState(() => {
   try { return localStorage.getItem("cinelight_image_preview") || null; } catch { return null; }
 });
   const [sceneDescription, setSceneDescription] = useState("");
-  const [analysis, setAnalysis] = useState(null);
+ const [analysis, setAnalysis] = useState(() => {
+  try { const s = localStorage.getItem("cinelight_analysis"); return s ? JSON.parse(s) : null; } catch { return null; }
+});
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1);
   const [cameraMode, setCameraMode] = useState(false);
@@ -176,6 +182,24 @@ useEffect(() => {
     else localStorage.removeItem("cinelight_image_preview");
   } catch {}
 }, [uploadedImage]);
+useEffect(() => {
+  try {
+    if (analysis) localStorage.setItem("cinelight_analysis", JSON.stringify(analysis));
+    else localStorage.removeItem("cinelight_analysis");
+  } catch {}
+}, [analysis]);
+
+useEffect(() => {
+  try {
+    if (selectedMood) localStorage.setItem("cinelight_mood", selectedMood);
+  } catch {}
+}, [selectedMood]);
+
+useEffect(() => {
+  try {
+    localStorage.setItem("cinelight_shot", selectedShot);
+  } catch {}
+}, [selectedShot]);
   const fileRef = useRef();
   const videoRef = useRef();
   const streamRef = useRef();
