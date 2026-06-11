@@ -329,11 +329,18 @@ ctx.globalAlpha = hasPhoto ? 0.35 : 1;
     if (imageBase64) {
       const img = new Image();
       img.onload = () => {
-        const ratio = img.width / img.height;
-        const drawH = H, drawW = drawH * ratio;
-        const ox = (W - drawW) / 2;
-        ctx.globalAlpha = 0.45;
-        ctx.drawImage(img, ox, 0, drawW, drawH);
+      const ratio = img.width / img.height;
+const canvasRatio = W / H;
+let drawW, drawH, ox, oy;
+if (ratio > canvasRatio) {
+  drawH = H; drawW = drawH * ratio;
+  ox = (W - drawW) / 2; oy = 0;
+} else {
+  drawW = W; drawH = drawW / ratio;
+  ox = 0; oy = (H - drawH) / 2;
+}
+ctx.globalAlpha = 0.45;
+ctx.drawImage(img, ox, oy, drawW, drawH);
         ctx.globalAlpha = 1;
         renderAll();
       };
