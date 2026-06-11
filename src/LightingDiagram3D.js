@@ -75,9 +75,11 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
     function drawRoom() {
       const fg = ctx.createLinearGradient(W / 2, BACK_Y, W / 2, FLOOR_Y);
       fg.addColorStop(0, '#0a1020'); fg.addColorStop(1, '#131a28');
+ctx.globalAlpha = 0.55 ;
       ctx.beginPath();
       ctx.moveTo(ROOM_L, FLOOR_Y); ctx.lineTo(BACK_L, BACK_Y); ctx.lineTo(BACK_R, BACK_Y); ctx.lineTo(ROOM_R, FLOOR_Y);
       ctx.closePath(); ctx.fillStyle = fg; ctx.fill();
+ ctx.globalAlpha = 1;
       ctx.strokeStyle = '#1e3a5f'; ctx.lineWidth = 1.5; ctx.stroke();
 
       for (let i = 1; i < 6; i++) {
@@ -330,7 +332,7 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
         const ratio = img.width / img.height;
         const drawH = H, drawW = drawH * ratio;
         const ox = (W - drawW) / 2;
-        ctx.globalAlpha = 0.22;
+        ctx.globalAlpha = 0.45;
         ctx.drawImage(img, ox, 0, drawW, drawH);
         ctx.globalAlpha = 1;
         renderAll();
