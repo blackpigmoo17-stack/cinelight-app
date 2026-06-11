@@ -138,8 +138,12 @@ const analyzeImageMood = async (imageBase64, mood, shotType, equipment = [], sce
 export default function App() {
   const [selectedMood, setSelectedMood] = useState(null);
   const [selectedShot, setSelectedShot] = useState(SHOT_TYPES[0]);
-  const [uploadedImage, setUploadedImage] = useState(null);
-  const [imageBase64, setImageBase64] = useState(null);
+  const [imageBase64, setImageBase64] = useState(() => {
+  try { return localStorage.getItem("cinelight_image") || null; } catch { return null; }
+});
+const [uploadedImage, setUploadedImage] = useState(() => {
+  try { return localStorage.getItem("cinelight_image_preview") || null; } catch { return null; }
+});
   const [sceneDescription, setSceneDescription] = useState("");
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -159,6 +163,19 @@ useEffect(() => {
     localStorage.setItem("cinelight_equipment", JSON.stringify(selectedEquipment));
   } catch {}
 }, [selectedEquipment]);
+useEffect(() => {
+  try {
+    if (imageBase64) localStorage.setItem("cinelight_image", imageBase64);
+    else localStorage.removeItem("cinelight_image");
+  } catch {}
+}, [imageBase64]);
+
+useEffect(() => {
+  try {
+    if (uploadedImage) localStorage.setItem("cinelight_image_preview", uploadedImage);
+    else localStorage.removeItem("cinelight_image_preview");
+  } catch {}
+}, [uploadedImage]);
   const fileRef = useRef();
   const videoRef = useRef();
   const streamRef = useRef();
