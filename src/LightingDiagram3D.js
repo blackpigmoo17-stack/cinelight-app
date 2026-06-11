@@ -259,15 +259,25 @@ ctx.globalAlpha = hasPhoto ? 0.35 : 1;
     }
 
     function drawLabel(x, y, name, color, deg, sc) {
-      const short = name.length > 14 ? name.substring(0, 14) + '…' : name;
-      ctx.font = `bold ${9 * sc}px monospace`; ctx.textAlign = 'center';
-      const tw = ctx.measureText(short).width + 12, lx = x - tw / 2, ly = y - 24 * sc;
-      ctx.fillStyle = '#060c14'; ctx.fillRect(lx - 1, ly - 1, tw + 2, 14 * sc + 2);
-      ctx.strokeStyle = color + '77'; ctx.lineWidth = 1; ctx.strokeRect(lx, ly, tw, 14 * sc);
-      ctx.fillStyle = color; ctx.fillText(short, x, ly + 10 * sc);
-      ctx.font = `${7.5 * sc}px monospace`; ctx.fillStyle = color + '99';
-      ctx.fillText(`${deg}°`, x, y + 24 * sc);
-    }
+  const short = name.length > 12 ? name.substring(0, 12) + '…' : name;
+  ctx.font = `bold ${9 * sc}px monospace`;
+  const tw = ctx.measureText(short).width + 12;
+  // ถ้า angle ซ้าย (-) ให้ label อยู่ซ้าย ถ้าขวา (+) ให้อยู่ขวา
+  const offX = deg < 0 ? -(tw / 2 + 8) : (tw / 2 + 8);
+  const lx = x + offX - tw / 2;
+  const ly = y - 22 * sc;
+  // leader line
+  ctx.strokeStyle = color + '55'; ctx.lineWidth = 0.8; ctx.setLineDash([3, 2]);
+  ctx.beginPath(); ctx.moveTo(x, y - 12 * sc); ctx.lineTo(lx + tw / 2, ly + 7 * sc); ctx.stroke();
+  ctx.setLineDash([]);
+  // box
+  ctx.fillStyle = '#060c14'; ctx.fillRect(lx - 1, ly - 1, tw + 2, 14 * sc + 2);
+  ctx.strokeStyle = color + '77'; ctx.lineWidth = 1; ctx.strokeRect(lx, ly, tw, 14 * sc);
+  ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.fillText(short, lx + 5, ly + 10 * sc);
+  // angle
+  ctx.font = `${7.5 * sc}px monospace`; ctx.textAlign = 'center';
+  ctx.fillStyle = color + '99'; ctx.fillText(`${deg}°`, x, y + 22 * sc);
+}
 
     function drawCamera() {
       const cp = wts(0, -0.02, 0);
@@ -312,8 +322,10 @@ ctx.globalAlpha = hasPhoto ? 0.35 : 1;
         const angleDeg = getAngleDeg(light, i);
         const world = atw(angleDeg, 0.72);
         const lp = wts(world.side, world.depth, 0);
+
         const hp = wts(world.side, world.depth, 0.78);
-        drawStand(lp.x, lp.y, hp.x, hp.y);
+      const floorY = BACK_Y + (FLOOR_Y - BACK_Y) * (1 - world.depth);
+drawStand(lp.x, floorY, hp.x, hp.y);
         const sc = 0.60 + (1 - world.depth) * 0.40;
         drawLightIcon(hp.x, hp.y, getLightType(light), color, sc);
         drawLabel(hp.x, hp.y, light.name || '', color, angleDeg, sc);
