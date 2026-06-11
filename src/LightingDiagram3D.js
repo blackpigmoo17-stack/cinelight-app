@@ -72,10 +72,10 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
       return { side: Math.sin(r) * dist * 1.3, depth: Math.max(0.05, Math.min(0.92, (1 - Math.cos(r)) * 0.5 * dist + 0.08)) };
     }
 
-    function drawRoom() {
+    function drawRoom(hasPhoto = false) {
       const fg = ctx.createLinearGradient(W / 2, BACK_Y, W / 2, FLOOR_Y);
       fg.addColorStop(0, '#0a1020'); fg.addColorStop(1, '#131a28');
-ctx.globalAlpha = 0.55 ;
+ctx.globalAlpha = hasPhoto ? 0.35 : 1;
       ctx.beginPath();
       ctx.moveTo(ROOM_L, FLOOR_Y); ctx.lineTo(BACK_L, BACK_Y); ctx.lineTo(BACK_R, BACK_Y); ctx.lineTo(ROOM_R, FLOOR_Y);
       ctx.closePath(); ctx.fillStyle = fg; ctx.fill();
@@ -289,7 +289,7 @@ ctx.globalAlpha = 0.55 ;
     }
 
     function renderAll() {
-      drawRoom();
+      drawRoom(!!imageBase64)
       const sp = {};
       subjectList.forEach(s => { sp[s.id] = drawSubject(s); });
 
