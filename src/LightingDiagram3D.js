@@ -73,6 +73,7 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
     }
 
     function drawRoom(hasPhoto = false) {
+  if (hasPhoto) return;
       const fg = ctx.createLinearGradient(W / 2, BACK_Y, W / 2, FLOOR_Y);
       fg.addColorStop(0, '#0a1020'); fg.addColorStop(1, '#131a28');
 ctx.globalAlpha = hasPhoto ? 0.35 : 1;
