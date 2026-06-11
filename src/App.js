@@ -527,7 +527,8 @@ imageBase64={imageBase64}
                     <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>💡 คำแนะนำการวางไฟ</div>
                     <div style={{ fontSize: 13, color: "#93c5fd", lineHeight: 1.7 }}>{analysis.lighting_recommendation}</div>
                   </div>
-                )}{analysis.creative_opportunities && (
+                )}
+                {analysis.creative_opportunities && (
   <div className="analysis-card" style={{ borderColor: "#1a3a2a" }}>
     <div style={{ fontSize: 10, color: "#475569", letterSpacing: 1, marginBottom: 8 }}>✨ โอกาสพิเศษในฉากนี้</div>
     <div style={{ fontSize: 13, color: "#34d399", lineHeight: 1.7 }}>{analysis.creative_opportunities}</div>
