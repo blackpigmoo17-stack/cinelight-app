@@ -52,7 +52,10 @@ function getLightType(light) {
 }
 
 function getAngleDeg(light, index) {
-  if (typeof light.angle_deg === 'number') return light.angle_deg;
+  if (typeof light.angle_deg === 'number') {
+    const flipped = ((light.angle_deg + 180) % 360 + 360) % 360;
+    return flipped > 180 ? flipped - 360 : flipped;
+  }
   const nameLower = (light.name || '').toLowerCase();
   for (const [key, angle] of Object.entries(AI_NAME_MAP)) {
     if (nameLower.includes(key.toLowerCase())) return angle;
