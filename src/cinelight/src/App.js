@@ -15,6 +15,7 @@ import AnalysisResult from "./components/AnalysisResult";
 import ExportButton from "./components/ExportButton";
 import EquipmentSelector from "./EquipmentSelector";
 
+
 const GLOBAL_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap');
   *{box-sizing:border-box;margin:0;padding:0}
