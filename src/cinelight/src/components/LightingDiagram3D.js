@@ -87,7 +87,7 @@ export default function LightingDiagram3D({ lights = [], moodColor, subjects = [
 
     function lightPos(angleDeg) {
       const rad = angleDeg * Math.PI / 180;
-      return { x: CX + Math.sin(rad) * R, y: CY + Math.cos(rad) * R * 0.72 };
+      return { x: CX - Math.sin(rad) * R, y: CY + Math.cos(rad) * R * 0.72 };
     }
 
     function subjPos(position) {
