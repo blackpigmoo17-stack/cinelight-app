@@ -36,11 +36,7 @@ function getLightType(light) {
 }
 
 function getAngleDeg(light, index) {
-  if (typeof light.angle_deg === 'number') return light.angle_deg;
-  const nameLower = (light.name || '').toLowerCase();
-  for (const [key, angle] of Object.entries(AI_NAME_MAP)) {
-    if (nameLower.includes(key.toLowerCase())) return angle;
-  }
+ if (typeof light.angle_deg === 'number') return light.angle_deg;
   return [-45, 40, -150, 150, -90, 90, 170, 10][index % 8];
 }
 
