@@ -13,6 +13,7 @@ import { StepShot, StepMood } from "./components/StepControls";
 import LightingPreset from "./components/LightingPreset";
 import AnalysisResult from "./components/AnalysisResult";
 import ExportButton from "./components/ExportButton";
+import PaywallTeaser from "./components/PaywallTeaser";
 import EquipmentSelector from "./EquipmentSelector";
 
 const GLOBAL_STYLES = `
@@ -84,9 +85,12 @@ export default function App() {
     analyze({ imageBase64, mood: selectedMood, shotType: selectedShot, equipment: selectedEquipment, sceneDescription });
   };
 
+  const handleUnlock = () => setShowApiModal(true);
+
   const preset = selectedMood ? LIGHTING_PRESETS[selectedMood] : null;
   const mood = selectedMood ? MOODS.find((m) => m.id === selectedMood) : null;
   const stepOpacity = (minStep) => ({ opacity: step >= minStep ? 1 : 0.35, transition: "opacity 0.3s", pointerEvents: step >= minStep ? "auto" : "none" });
+  const isUnlocked = !!apiKey;
 
   return (
     <div style={{ fontFamily: "'DM Sans','Noto Sans Thai',sans-serif", background: "#080c14", minHeight: "100vh", color: "#e2e8f0" }}>
@@ -126,14 +130,18 @@ export default function App() {
         )}
 
         {selectedMood && uploadedImage && (
-          <div style={{ marginBottom: 24 }}>
-            <div className="section-title">STEP 4 — วิเคราะห์ฉากด้วย AI</div>
-            <button className="analyze-btn" disabled={loading} onClick={handleAnalyze} style={{ marginBottom: 16 }}>
-              {loading ? <span className="pulse">🔍 กำลังวิเคราะห์ภาพ...</span> : "🎬 วิเคราะห์ฉากและแนะนำการวางไฟ"}
-            </button>
-            <AnalysisResult analysis={analysis} />
-            <ExportButton analysis={analysis} />
-          </div>
+          isUnlocked ? (
+            <div style={{ marginBottom: 24 }}>
+              <div className="section-title">STEP 4 — วิเคราะห์ฉากด้วย AI</div>
+              <button className="analyze-btn" disabled={loading} onClick={handleAnalyze} style={{ marginBottom: 16 }}>
+                {loading ? <span className="pulse">🔍 กำลังวิเคราะห์ภาพ...</span> : "🎬 วิเคราะห์ฉากและแนะนำการวางไฟ"}
+              </button>
+              <AnalysisResult analysis={analysis} />
+              <ExportButton analysis={analysis} />
+            </div>
+          ) : (
+            <PaywallTeaser onUnlock={handleUnlock} />
+          )
         )}
 
         <div style={{ textAlign: "center", fontSize: 10, color: "#1e293b", paddingTop: 16, borderTop: "1px solid #0f1929" }}>
