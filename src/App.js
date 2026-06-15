@@ -15,6 +15,7 @@ import AnalysisResult from "./components/AnalysisResult";
 import ExportButton from "./components/ExportButton";
 import PaywallTeaser from "./components/PaywallTeaser";
 import EquipmentSelector from "./EquipmentSelector";
+import LandingShowcase from "./components/LandingShowcase";
 
 const GLOBAL_STYLES = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap');
@@ -110,6 +111,7 @@ export default function App() {
       <Header step={step} apiKey={apiKey} onOpenApiModal={() => setShowApiModal(true)} />
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+        <LandingShowcase />
         <StepUpload
           uploadedImage={uploadedImage}
           sceneDescription={sceneDescription}
