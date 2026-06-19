@@ -1,4 +1,4 @@
-const SAMPLES = [
+ constSAMPLES = [
   {
     emoji: "🌅", label: "Golden Hour", ratio: "3:1",
     ratioColor: "#f59e0b", ratioText: "#78350f",
