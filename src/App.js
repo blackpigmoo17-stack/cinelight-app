@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { MOODS } from "./constants/moods";
 import { SHOT_TYPES } from "./constants/shotTypes";
 import { LIGHTING_PRESETS } from "./constants/presets";
@@ -56,6 +56,28 @@ export default function App() {
   const [selectedEquipment, setSelectedEquipment] = useLocalStorage("cinelight_equipment", {});
 
   const { analysis, loading, analyze, reset } = useAnalysis();
+
+  // เช็ค success จาก Stripe redirect
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const success = params.get("success");
+    const email = params.get("email");
+    if (success === "true" && email) {
+      fetch("/api/check-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: decodeURIComponent(email) }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.isPro) {
+            setApiKey("pro:" + decodeURIComponent(email));
+          }
+        })
+        .catch(() => {});
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
 
   const handleCapture = (previewUrl, base64) => {
     setUploadedImage(previewUrl);
